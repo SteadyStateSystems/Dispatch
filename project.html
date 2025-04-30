@@ -1,19 +1,26 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <!-- match your index.html viewport so the header CSS works identically -->
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <title>Project Tracker</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
- <header>
-  <a href="index.html" class="logo-link">
-    <img src="https://badcopyinc.github.io/Project-Management/Final-M3T-Logo-White.png" />
-  </a>
-  <h1 class="title">Project Dashboard</h1>
-</header>
+  <header>
+    <a href="index.html" class="logo-link">
+      <!-- add the .logo class so it gets sized to 50px high -->
+      <img
+        src="https://badcopyinc.github.io/Project-Management/Final-M3T-Logo-White.png"
+        alt="M3T Logo"
+        class="logo"
+      />
+    </a>
+    <h1 class="title">Project Dashboard</h1>
+  </header>
 
   <main>
   <div id="project-container">
