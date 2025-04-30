@@ -38,7 +38,7 @@ function loadProjectData(tech, project) {
         const subDone = subtasks.filter(st => st.status === 1).length;
         const isComplete = subtasks.length > 0
           ? subDone === subtasks.length
-          : task.complete === true || task.status === 1;
+          : task.completed === true || task.status === 1;
 
         cb.checked = isComplete;
 
@@ -191,7 +191,7 @@ subUl.appendChild(addSubMatBtn);
         if (t.subtasks?.length) {
           return sum + t.subtasks.filter(st => st.status === 1).length;
         } else {
-          return sum + ((t.complete || t.status === 1) ? 1 : 0);
+          return sum + ((t.completed || t.status === 1) ? 1 : 0);
         }
       }, 0) + materials.filter(m => (m.stage ?? m.status) === 3).length;
 
@@ -259,4 +259,22 @@ function saveNewItem(type, name) {
 function toggleSection(id) {
   const el = document.getElementById(id);
   if (el) el.classList.toggle("expanded");
+}
+
+
+function addTask() {
+  const name = prompt("New task name:");
+  if (name?.trim()) {
+    saveNewItem("task", name.trim());
+  }
+}
+
+/**
+ * Prompt for a new material name and save it.
+ */
+function addMaterial() {
+  const name = prompt("New material name:");
+  if (name?.trim()) {
+    saveNewItem("material", name.trim());
+  }
 }

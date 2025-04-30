@@ -176,8 +176,7 @@ li > ul {
   padding-left: 1rem;
 }
 
-/* Enhanced Progress Bar Styling */
-#progress-container {
+.progress-bar-bg {
   width: 100%;
   background-color: #e0e0e0;
   border-radius: 8px;
@@ -186,6 +185,7 @@ li > ul {
   overflow: hidden;
   box-shadow: inset 0 1px 3px rgba(0,0,0,0.2);
 }
+
 
 #progress-bar {
   height: 100%;

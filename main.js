@@ -46,6 +46,17 @@ fetch("https://adjusted-bluejay-gratefully.ngrok-free.app/data", {
       });
 
       techCard.appendChild(projectList);
+      const addBtn = document.createElement("button");
+  addBtn.textContent = "+ Add Project";
+  addBtn.className = "add-task-btn";           // matches your CSS styles
+  addBtn.onclick = () => {
+    const overlay = document.getElementById("addProjectOverlay");
+    overlay.style.display = "block";
+    // auto-select this technician in the form
+    overlay.querySelector('select[name="technician"]').value = techName;
+  };
+  techCard.appendChild(addBtn);
+
       technicianContainer.appendChild(techCard);
     });
   })
@@ -54,8 +65,9 @@ fetch("https://adjusted-bluejay-gratefully.ngrok-free.app/data", {
     technicianContainer.innerHTML = `<p style="color:red">Failed to load project data.</p>`;
   });
 
+
 function calculateCompletion(tasks) {
   if (!tasks || tasks.length === 0) return 0;
-  const completed = tasks.filter((t) => t.complete).length;
+  const completed = tasks.filter(t => t.completed).length;
   return Math.round((completed / tasks.length) * 100);
 }
