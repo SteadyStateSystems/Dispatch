@@ -7,20 +7,28 @@
   font-family: Arial, sans-serif;
 }
 
-/* Main Layout */
+
+/* Main Layout (with iOS safe-area insets) */
 html, body {
   margin: 0;
-  padding: 0;
+  /* pull in iOS notch/status-bar areas */
+  padding: env(safe-area-inset-top) 
+           env(safe-area-inset-right) 
+           env(safe-area-inset-bottom) 
+           env(safe-area-inset-left);
   height: 100%;
   width: 100%;
   background-color: #adadad;
 }
 
-/* Fix header alignment with iOS safe area */
+/* Fixed header that extends into the safe area */
 header {
   background-color: #1c1c1c;
-  margin-top: calc(-1 * env(safe-area-inset-top, 0));
-  padding-top: env(safe-area-inset-top, 0);
+  /* combine your existing top padding plus the notch inset */
+  padding-top: calc(0.5rem + env(safe-area-inset-top, 0));
+  padding-bottom: 0.5rem;
+  padding-left: calc(1rem + env(safe-area-inset-left, 0));
+  padding-right: calc(1rem + env(safe-area-inset-right, 0));
   position: sticky;
   top: 0;
   z-index: 1000;
@@ -30,6 +38,7 @@ header {
   align-items: center;
   border-bottom: 2px solid #ccc;
 }
+
 
 .logo-link {
   display: flex;
