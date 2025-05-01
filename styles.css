@@ -15,20 +15,26 @@ html, body {
 }
 
 header {
-  position: sticky;
+  position: fixed;
   top: 0;
+  left: 0;
+  right: 0;
   z-index: 1000;
-  width: 100%;
+  padding-top:    calc(env(safe-area-inset-top) + 0.5rem);
+  padding-bottom: 0.5rem;
+  padding-left:   calc(env(safe-area-inset-left) + 1rem);
+  padding-right:  calc(env(safe-area-inset-right) + 1rem);
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding-top: calc(0.5rem + env(safe-area-inset-top));
-  padding-bottom: 0.5rem;
-  padding-left: calc(1rem + env(safe-area-inset-left));
-  padding-right: calc(1rem + env(safe-area-inset-right));
   background-color: #1c1c1c;
   border-bottom: 2px solid #ccc;
 }
+
+main {
+  margin-top: calc(env(safe-area-inset-top) + 4rem);
+}
+
 
 
 
