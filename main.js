@@ -1,6 +1,7 @@
 const technicianContainer = document.getElementById("technicianContainer");
+const API_BASE = "https://adjusted-bluejay-gratefully.ngrok-free.app";
 
-fetch("https://adjusted-bluejay-gratefully.ngrok-free.app/data", {
+fetch(`${API_BASE}/data`, {
   headers: {
     "ngrok-skip-browser-warning": "true"
   }
@@ -22,41 +23,46 @@ fetch("https://adjusted-bluejay-gratefully.ngrok-free.app/data", {
       techCard.appendChild(techHeader);
 
       const projectList = document.createElement("div");
+      projectList.className = "project-list";
       projectList.style.display = "none";
 
-     Object.entries(techData.projects || {}).forEach(([projectName, project]) => {
-  const entry = document.createElement("div");
-  entry.className = "project-entry";
-  entry.innerHTML = `
-    <strong>${projectName}</strong><br/>
-    ${calculateCompletion(project.tasks)}% Complete
-    <div class="progress-bar"><div class="progress-fill" style="width:${calculateCompletion(project.tasks)}%"></div></div>
-  `;
+      Object.entries(techData.projects || {}).forEach(([projectName, project]) => {
+        const completion = calculateCompletion(project.tasks);
+        const entry = document.createElement("div");
+        entry.className = "project-entry";
+        entry.innerHTML = `
+          <strong>${projectName}</strong><br/>
+          ${completion}% Complete
+          <div class="progress-bar"><div class="progress-fill" style="width:${completion}%"></div></div>
+        `;
 
-  entry.addEventListener("click", () => {
-    const url = `project.html?tech=${encodeURIComponent(techName)}&project=${encodeURIComponent(projectName)}`;
-    window.location.href = url;
-  });
+        entry.addEventListener("click", () => {
+          const url = `project.html?tech=${encodeURIComponent(techName)}&project=${encodeURIComponent(projectName)}`;
+          window.location.href = url;
+        });
 
-  projectList.appendChild(entry);
-});
+        projectList.appendChild(entry);
+      });
+
+      const addBtn = document.createElement("button");
+      addBtn.textContent = "+ Add Project";
+      addBtn.className = "add-task-btn add-project-btn";
+      addBtn.style.display = "none";
+      addBtn.onclick = () => {
+        const overlay = document.getElementById("addProjectOverlay");
+        overlay.style.display = "block";
+        overlay.querySelector('select[name="technician"]').value = techName;
+      };
 
       techHeader.addEventListener("click", () => {
-        projectList.style.display = projectList.style.display === "none" ? "block" : "none";
+        const expanded = projectList.style.display === "none";
+        projectList.style.display = expanded ? "block" : "none";
+        addBtn.style.display = expanded ? "inline-block" : "none";
+        techCard.classList.toggle("expanded", expanded);
       });
 
       techCard.appendChild(projectList);
-      const addBtn = document.createElement("button");
-  addBtn.textContent = "+ Add Project";
-  addBtn.className = "add-task-btn";           // matches your CSS styles
-  addBtn.onclick = () => {
-    const overlay = document.getElementById("addProjectOverlay");
-    overlay.style.display = "block";
-    // auto-select this technician in the form
-    overlay.querySelector('select[name="technician"]').value = techName;
-  };
-  techCard.appendChild(addBtn);
-
+      techCard.appendChild(addBtn);
       technicianContainer.appendChild(techCard);
     });
   })
@@ -65,9 +71,8 @@ fetch("https://adjusted-bluejay-gratefully.ngrok-free.app/data", {
     technicianContainer.innerHTML = `<p style="color:red">Failed to load project data.</p>`;
   });
 
-
 function calculateCompletion(tasks) {
   if (!tasks || tasks.length === 0) return 0;
-  const completed = tasks.filter(t => t.completed).length;
+  const completed = tasks.filter((t) => t.complete === true || t.completed === true).length;
   return Math.round((completed / tasks.length) * 100);
 }

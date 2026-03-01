@@ -70,7 +70,7 @@
       const name = form.projectName.value;
       const address = form.address.value;
       const scope = form.scope.value;
-      const tasks = form.tasks.value.split('\n').filter(Boolean).map(t => ({ name: t, completed: false }));
+      const tasks = form.tasks.value.split('\n').filter(Boolean).map(t => ({ name: t, complete: false }));
       const materials = form.materials.value.split('\n').filter(Boolean).map(m => ({ name: m, stage: 0 }));
 
       const response = await fetch('https://adjusted-bluejay-gratefully.ngrok-free.app/addProject', {
@@ -82,11 +82,12 @@
         body: JSON.stringify({ technician, name, address, scope, tasks, materials, updatedBy: 'Admin' })
       });
 
-      if (response.ok) {
+      const payload = await response.json().catch(() => ({}));
+      if (response.ok && payload.success !== false) {
         alert('Project added successfully');
         location.reload();
       } else {
-        alert('Failed to add project');
+        alert(payload.error || 'Failed to add project');
       }
     });
   </script>

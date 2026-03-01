@@ -12,6 +12,11 @@ html, body {
   margin: 0;
   padding: 0;
   background-color: #1c1c1c;
+  min-height: 100%;
+}
+
+body {
+  color: #111;
 }
 
 header {
@@ -32,7 +37,9 @@ header {
 }
 
 main {
-  margin-top: calc(env(safe-area-inset-top) + 4rem);
+  padding-top: calc(env(safe-area-inset-top) + 5.25rem);
+  padding-left: 1rem;
+  padding-right: 1rem;
 }
 
 
@@ -84,6 +91,14 @@ header h1.title {
   padding: 0.5rem 1rem;
   border-top: 1px solid #ccc;
   cursor: pointer;
+}
+
+.project-list {
+  margin-top: 0.5rem;
+}
+
+.add-project-btn {
+  margin-top: 0.75rem;
 }
 
 .progress-bar {
