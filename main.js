@@ -25,6 +25,7 @@ function headerControls() {
     <label>Search
       <input id="globalSearch" placeholder="Search tech/project/task/material" />
     </label>
+    <button id="globalAddProjectBtn">+ Add Project</button>
     <button id="reloadBtn">Refresh</button>
   `;
   const controlsHost = document.getElementById('dashboardControls');
@@ -35,11 +36,22 @@ function headerControls() {
   roleMode.onchange = () => {
     appState.role = roleMode.value;
     localStorage.setItem("m3t-role", appState.role);
+    const addBtn = document.getElementById("globalAddProjectBtn");
+    if (addBtn) {
+      addBtn.classList.toggle("disabled-btn", appState.role !== "admin");
+      addBtn.title = appState.role !== "admin" ? "Admin only" : "";
+    }
     render();
   };
 
   const myTech = document.getElementById("myTechFilter");
   myTech.value = appState.techFilter;
+
+  const addBtn = document.getElementById("globalAddProjectBtn");
+  if (addBtn) {
+    addBtn.classList.toggle("disabled-btn", appState.role !== "admin");
+    addBtn.title = appState.role !== "admin" ? "Admin only" : "";
+  }
   myTech.onchange = () => {
     appState.techFilter = myTech.value;
     localStorage.setItem("m3t-tech", appState.techFilter);
@@ -50,6 +62,18 @@ function headerControls() {
   search.oninput = () => {
     appState.query = (search.value || "").toLowerCase().trim();
     render();
+  };
+
+  const addProjectBtn = document.getElementById("globalAddProjectBtn");
+  addProjectBtn.onclick = () => {
+    if (appState.role !== "admin") {
+      alert("Add Project is Admin only. Switch Role to Admin.");
+      return;
+    }
+    const overlay = document.getElementById("addProjectOverlay");
+    overlay.style.display = "block";
+    const techSelect = overlay.querySelector('select[name="technician"]');
+    if (techSelect && appState.techFilter) techSelect.value = appState.techFilter;
   };
 
   document.getElementById("reloadBtn").onclick = loadData;
@@ -151,32 +175,13 @@ function render() {
       projectList.appendChild(entry);
     });
 
-    const addBtn = document.createElement("button");
-    addBtn.textContent = "+ Add Project";
-    addBtn.className = "add-task-btn add-project-btn";
-    addBtn.style.display = "none";
-    addBtn.disabled = false;
-    addBtn.classList.toggle("disabled-btn", appState.role !== "admin");
-    addBtn.title = appState.role !== "admin" ? "Admin only" : "";
-    addBtn.onclick = () => {
-      if (appState.role !== "admin") {
-        alert("Add Project is Admin only. Switch Role to Admin at the top.");
-        return;
-      }
-      const overlay = document.getElementById("addProjectOverlay");
-      overlay.style.display = "block";
-      overlay.querySelector('select[name="technician"]').value = techName;
-    };
-
     techHeader.addEventListener("click", () => {
       const expanded = projectList.style.display === "none";
       projectList.style.display = expanded ? "block" : "none";
-      addBtn.style.display = expanded ? "inline-block" : "none";
       techCard.classList.toggle("expanded", expanded);
     });
 
     techCard.appendChild(projectList);
-    techCard.appendChild(addBtn);
     technicianContainer.appendChild(techCard);
   });
 
