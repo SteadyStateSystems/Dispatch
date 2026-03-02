@@ -7,6 +7,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <title>M3T Technician Dashboard</title>
+  <link rel="manifest" href="manifest.json" />
   <link rel="stylesheet" href="styles.css"/>
 </head>
 <body>
@@ -45,11 +46,14 @@
         <label>Project Address:<br>
           <input type="text" name="address" required>
         </label><br><br>
+        <label>Template (optional):
+          <select name="templateId" id="templateSelect"><option value="">None</option></select>
+        </label><br><br>
         <label>Tasks (one per line):<br>
-          <textarea name="tasks" rows="4" required></textarea>
+          <textarea name="tasks" rows="4"></textarea>
         </label><br><br>
         <label>Materials (one per line):<br>
-          <textarea name="materials" rows="4" required></textarea>
+          <textarea name="materials" rows="4"></textarea>
         </label><br><br>
         <label>Scope of Work:<br>
           <textarea name="scope" rows="5"></textarea>
@@ -61,25 +65,53 @@
   </div>
 
   <script src="main.js"></script>
+  <script src="pwa.js"></script>
 
   <script>
+    const API_BASE = 'https://adjusted-bluejay-gratefully.ngrok-free.app';
+
+    async function loadTemplates() {
+      try {
+        const res = await fetch(`${API_BASE}/templates`, { headers: { 'ngrok-skip-browser-warning': 'true' } });
+        if (!res.ok) return;
+        const payload = await res.json();
+        const sel = document.getElementById('templateSelect');
+        (payload.templates || []).forEach(t => {
+          const opt = document.createElement('option');
+          opt.value = t.id;
+          opt.textContent = t.name;
+          sel.appendChild(opt);
+        });
+      } catch {}
+    }
+
+    loadTemplates();
+
     document.getElementById('addProjectForm').addEventListener('submit', async (e) => {
       e.preventDefault();
+      const role = localStorage.getItem('m3t-role') || 'tech';
+      if (role !== 'admin') {
+        alert('Admin role required to add projects.');
+        return;
+      }
+
       const form = e.target;
       const technician = form.technician.value;
       const name = form.projectName.value;
       const address = form.address.value;
       const scope = form.scope.value;
+      const templateId = form.templateId.value || '';
       const tasks = form.tasks.value.split('\n').filter(Boolean).map(t => ({ name: t, complete: false }));
       const materials = form.materials.value.split('\n').filter(Boolean).map(m => ({ name: m, stage: 0 }));
 
-      const response = await fetch('https://adjusted-bluejay-gratefully.ngrok-free.app/addProject', {
+      const response = await fetch(`${API_BASE}/addProject`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'ngrok-skip-browser-warning': 'true'
+          'ngrok-skip-browser-warning': 'true',
+          'x-m3t-role': role
         },
-        body: JSON.stringify({ technician, name, address, scope, tasks, materials, updatedBy: 'Admin' })
+        body: JSON.stringify({ technician, name, address, scope, templateId, tasks, materials, updatedBy: 'Admin' })
       });
 
       const payload = await response.json().catch(() => ({}));
