@@ -28,7 +28,7 @@
   <div id="addProjectOverlay" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:#f5f5f5; z-index:9999; overflow:auto; padding:2rem;">
     <div style="max-width:600px; margin:auto; background:white; padding:2rem; border-radius:1rem; box-shadow:0 0 10px rgba(0,0,0,0.2)">
       <h2>Add New Project</h2>
-      <form id="addProjectForm">
+      <form id="addProjectForm" onsubmit="return false;" action="javascript:void(0);" method="post">
         <label>Technician:
           <select name="technician" required>
             <option value="">Select...</option>
@@ -64,15 +64,15 @@
         <label>Scope of Work:<br>
           <textarea name="scope" rows="5"></textarea>
         </label><br><br>
-        <button type="submit">Submit</button>
+        <button type="button" id="addProjectSubmitBtn">Submit</button>
         <button type="button" onclick="document.getElementById('addProjectOverlay').style.display='none'">Cancel</button>
         <div id="addProjectDebug" style="margin-top:0.75rem;color:#333;font-size:0.9rem;"></div>
       </form>
     </div>
   </div>
 
-  <script src="main.js?v=20260302-1735"></script>
-  <script src="pwa.js?v=20260302-1735"></script>
+  <script src="main.js?v=20260302-1740"></script>
+  <script src="pwa.js?v=20260302-1740"></script>
 
   <script>
     const API_BASE = 'https://adjusted-bluejay-gratefully.ngrok-free.app';
@@ -97,9 +97,9 @@
     const addProjectForm = document.getElementById('addProjectForm');
     addProjectForm.setAttribute('novalidate', 'novalidate');
 
-    addProjectForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const form = e.target;
+    async function submitAddProject(e) {
+      if (e?.preventDefault) e.preventDefault();
+      const form = addProjectForm;
       const debugEl = document.getElementById('addProjectDebug');
 
       const requiredChecks = [
@@ -155,7 +155,11 @@
         if (debugEl) debugEl.textContent = `❌ Failed (${response.status}): ${payload.error || 'Unknown error'}`;
         alert(payload.error || 'Failed to add project');
       }
-    });
+    }
+
+    addProjectForm.addEventListener('submit', submitAddProject);
+    const submitBtn = document.getElementById('addProjectSubmitBtn');
+    if (submitBtn) submitBtn.addEventListener('click', submitAddProject);
   </script>
 </body>
 </html>
