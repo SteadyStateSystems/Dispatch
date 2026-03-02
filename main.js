@@ -154,9 +154,14 @@ function render() {
     addBtn.textContent = "+ Add Project";
     addBtn.className = "add-task-btn add-project-btn";
     addBtn.style.display = "none";
-    addBtn.disabled = appState.role !== "admin";
+    addBtn.disabled = false;
+    addBtn.classList.toggle("disabled-btn", appState.role !== "admin");
     addBtn.title = appState.role !== "admin" ? "Admin only" : "";
     addBtn.onclick = () => {
+      if (appState.role !== "admin") {
+        alert("Add Project is Admin only. Switch Role to Admin at the top.");
+        return;
+      }
       const overlay = document.getElementById("addProjectOverlay");
       overlay.style.display = "block";
       overlay.querySelector('select[name="technician"]').value = techName;

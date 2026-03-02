@@ -127,6 +127,10 @@ header h1.title {
   margin-top: 0.75rem;
 }
 
+.disabled-btn {
+  opacity: 0.6;
+}
+
 .progress-bar {
   height: 8px;
   background-color: #ddd;
