@@ -26,9 +26,8 @@ function headerControls() {
     </label>
     <button id="reloadBtn">Refresh</button>
   `;
-  const mainEl = document.querySelector('main');
-  if (mainEl && mainEl.firstChild) mainEl.insertBefore(wrap, mainEl.firstChild);
-  else if (mainEl) mainEl.appendChild(wrap);
+  const controlsHost = document.getElementById('dashboardControls');
+  if (controlsHost) controlsHost.replaceChildren(wrap);
 
   const roleMode = document.getElementById("roleMode");
   roleMode.value = appState.role;
