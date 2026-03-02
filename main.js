@@ -1,5 +1,6 @@
 const technicianContainer = document.getElementById("technicianContainer");
-const API_BASE = "https://adjusted-bluejay-gratefully.ngrok-free.app";
+window.M3T_API_BASE = window.M3T_API_BASE || "https://adjusted-bluejay-gratefully.ngrok-free.app";
+const API_BASE = window.M3T_API_BASE;
 
 const appState = {
   data: null,
