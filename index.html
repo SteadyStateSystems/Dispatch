@@ -66,6 +66,7 @@
         </label><br><br>
         <button type="submit">Submit</button>
         <button type="button" onclick="document.getElementById('addProjectOverlay').style.display='none'">Cancel</button>
+        <div id="addProjectDebug" style="margin-top:0.75rem;color:#333;font-size:0.9rem;"></div>
       </form>
     </div>
   </div>
@@ -111,6 +112,10 @@
       const tasks = form.tasks.value.split('\n').filter(Boolean).map(t => ({ name: t, complete: false }));
       const materials = form.materials.value.split('\n').filter(Boolean).map(m => ({ name: m, stage: 0 }));
 
+      const debugEl = document.getElementById('addProjectDebug');
+      debugEl.textContent = 'Submitting...';
+
+      const requestBody = { technician, name, address, location, scope, templateId, tasks, materials, updatedBy: 'Admin' };
       const response = await fetch(`${API_BASE}/addProject`, {
         method: 'POST',
         headers: {
@@ -118,14 +123,20 @@
           'ngrok-skip-browser-warning': 'true',
           'x-m3t-role': role
         },
-        body: JSON.stringify({ technician, name, address, location, scope, templateId, tasks, materials, updatedBy: 'Admin' })
+        body: JSON.stringify(requestBody)
       });
 
       const payload = await response.json().catch(() => ({}));
       if (response.ok && payload.success !== false) {
+        debugEl.textContent = `✅ Added: ${technician} / ${name}`;
         alert('Project added successfully');
-        location.reload();
+        document.getElementById('addProjectOverlay').style.display='none';
+
+        // Force refresh without relying on stale state.
+        const btn = document.getElementById('reloadBtn');
+        if (btn) btn.click();
       } else {
+        debugEl.textContent = `❌ Failed (${response.status}): ${payload.error || 'Unknown error'}`;
         alert(payload.error || 'Failed to add project');
       }
     });
