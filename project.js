@@ -181,6 +181,9 @@ async function loadProjectData(tech, project) {
   const tasks = (projectData.tasks || []).filter(t => !t.deletedAt);
   const materials = (projectData.materials || []).filter(m => !m.deletedAt);
   const scopeText = projectData.scope || "No scope of work provided.";
+  const locationText = projectData.location || projectData.address || "";
+  const locEl = document.getElementById("project-location");
+  if (locEl) locEl.textContent = locationText ? `Location: ${locationText}` : "";
   document.getElementById("scope-text").textContent = scopeText;
 
   const taskList = document.getElementById("task-list");

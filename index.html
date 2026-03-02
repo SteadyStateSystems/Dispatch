@@ -49,6 +49,9 @@
         <label>Project Address:<br>
           <input type="text" name="address" required>
         </label><br><br>
+        <label>Location (site/area):<br>
+          <input type="text" name="location" placeholder="e.g., Basement MDF / Floor 2 IDF">
+        </label><br><br>
         <label>Template (optional):
           <select name="templateId" id="templateSelect"><option value="">None</option></select>
         </label><br><br>
@@ -102,6 +105,7 @@
       const technician = form.technician.value;
       const name = form.projectName.value;
       const address = form.address.value;
+      const location = form.location.value;
       const scope = form.scope.value;
       const templateId = form.templateId.value || '';
       const tasks = form.tasks.value.split('\n').filter(Boolean).map(t => ({ name: t, complete: false }));
@@ -114,7 +118,7 @@
           'ngrok-skip-browser-warning': 'true',
           'x-m3t-role': role
         },
-        body: JSON.stringify({ technician, name, address, scope, templateId, tasks, materials, updatedBy: 'Admin' })
+        body: JSON.stringify({ technician, name, address, location, scope, templateId, tasks, materials, updatedBy: 'Admin' })
       });
 
       const payload = await response.json().catch(() => ({}));
