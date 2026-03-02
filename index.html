@@ -96,8 +96,11 @@
 
     document.getElementById('addProjectForm').addEventListener('submit', async (e) => {
       e.preventDefault();
-      const role = localStorage.getItem('m3t-role') || 'tech';
+      const roleSelectEl = document.getElementById('roleMode');
+      const role = (roleSelectEl?.value || localStorage.getItem('m3t-role') || 'tech').toLowerCase();
       if (role !== 'admin') {
+        const debugEl = document.getElementById('addProjectDebug');
+        if (debugEl) debugEl.textContent = `❌ Blocked: role is ${role}. Switch Role to Admin.`;
         alert('Admin role required to add projects.');
         return;
       }
