@@ -37,7 +37,7 @@ header {
 }
 
 main {
-  padding-top: calc(env(safe-area-inset-top) + 5.25rem);
+  padding-top: calc(env(safe-area-inset-top) + 6.5rem);
   padding-left: 1rem;
   padding-right: 1rem;
 }
@@ -185,6 +185,14 @@ header h1.title {
 
   .logo {
     height: 40px;
+  }
+
+  main {
+    padding-top: calc(env(safe-area-inset-top) + 8.25rem);
+  }
+
+  .top-controls {
+    margin-top: 0.25rem;
   }
 }
 
