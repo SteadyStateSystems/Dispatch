@@ -37,7 +37,7 @@ header {
 }
 
 main {
-  padding-top: calc(env(safe-area-inset-top) + 10.5rem);
+  padding-top: calc(env(safe-area-inset-top) + 8.75rem);
   padding-left: 1rem;
   padding-right: 1rem;
 }
@@ -193,7 +193,7 @@ header h1.title {
   }
 
   main {
-    padding-top: calc(env(safe-area-inset-top) + 12rem);
+    padding-top: calc(env(safe-area-inset-top) + 10.5rem);
   }
 
   .top-controls {
