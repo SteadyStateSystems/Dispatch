@@ -197,7 +197,7 @@ header h1.title {
   }
 
   main {
-    padding-top: calc(env(safe-area-inset-top) + 9.25rem);
+    padding-top: calc(env(safe-area-inset-top) + 8.25rem);
   }
 
   .top-controls {
