@@ -71,8 +71,8 @@
     </div>
   </div>
 
-  <script src="main.js?v=20260302-1615"></script>
-  <script src="pwa.js?v=20260302-1615"></script>
+  <script src="main.js?v=20260302-1712"></script>
+  <script src="pwa.js?v=20260302-1712"></script>
 
   <script>
     const API_BASE = 'https://adjusted-bluejay-gratefully.ngrok-free.app';
@@ -113,7 +113,7 @@
       const materials = form.materials.value.split('\n').filter(Boolean).map(m => ({ name: m, stage: 0 }));
 
       const debugEl = document.getElementById('addProjectDebug');
-      debugEl.textContent = 'Submitting...';
+      if (debugEl) debugEl.textContent = 'Submitting...';
 
       const requestBody = { technician, name, address, location, scope, templateId, tasks, materials, updatedBy: 'Admin' };
       const response = await fetch(`${API_BASE}/addProject`, {
@@ -128,7 +128,7 @@
 
       const payload = await response.json().catch(() => ({}));
       if (response.ok && payload.success !== false) {
-        debugEl.textContent = `✅ Added: ${technician} / ${name}`;
+        if (debugEl) debugEl.textContent = `✅ Added: ${technician} / ${name}`;
         alert('Project added successfully');
         document.getElementById('addProjectOverlay').style.display='none';
 
@@ -136,7 +136,7 @@
         const btn = document.getElementById('reloadBtn');
         if (btn) btn.click();
       } else {
-        debugEl.textContent = `❌ Failed (${response.status}): ${payload.error || 'Unknown error'}`;
+        if (debugEl) debugEl.textContent = `❌ Failed (${response.status}): ${payload.error || 'Unknown error'}`;
         alert(payload.error || 'Failed to add project');
       }
     });
