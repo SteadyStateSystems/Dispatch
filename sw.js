@@ -1,4 +1,4 @@
-const CACHE = 'm3t-cache-v1';
+const CACHE = 'm3t-cache-v2';
 const ASSETS = [
   './index.html',
   './project.html',
@@ -20,7 +20,22 @@ self.addEventListener('activate', (e) => {
 
 self.addEventListener('fetch', (e) => {
   if (e.request.method !== 'GET') return;
-  e.respondWith(
-    fetch(e.request).catch(() => caches.match(e.request).then(r => r || caches.match('./index.html')))
-  );
+
+  const url = new URL(e.request.url);
+  const isStatic = url.pathname.endsWith('.js') || url.pathname.endsWith('.css') || url.pathname.endsWith('.html');
+
+  if (isStatic) {
+    e.respondWith(
+      fetch(e.request)
+        .then((res) => {
+          const copy = res.clone();
+          caches.open(CACHE).then((c) => c.put(e.request, copy));
+          return res;
+        })
+        .catch(() => caches.match(e.request).then(r => r || caches.match('./index.html')))
+    );
+    return;
+  }
+
+  e.respondWith(fetch(e.request).catch(() => caches.match(e.request)));
 });
