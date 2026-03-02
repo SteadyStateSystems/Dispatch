@@ -94,18 +94,34 @@
 
     loadTemplates();
 
-    document.getElementById('addProjectForm').addEventListener('submit', async (e) => {
+    const addProjectForm = document.getElementById('addProjectForm');
+    addProjectForm.setAttribute('novalidate', 'novalidate');
+
+    addProjectForm.addEventListener('submit', async (e) => {
       e.preventDefault();
+      const form = e.target;
+      const debugEl = document.getElementById('addProjectDebug');
+
+      const requiredChecks = [
+        { key: 'technician', label: 'Technician' },
+        { key: 'projectName', label: 'Project Name' },
+        { key: 'address', label: 'Project Address' }
+      ];
+      const missing = requiredChecks.filter(f => !(form[f.key]?.value || '').trim());
+      if (missing.length) {
+        if (debugEl) debugEl.textContent = `❌ Missing: ${missing.map(m => m.label).join(', ')}`;
+        alert(`Please complete: ${missing.map(m => m.label).join(', ')}`);
+        return;
+      }
+
       const roleSelectEl = document.getElementById('roleMode');
       const role = (roleSelectEl?.value || localStorage.getItem('m3t-role') || 'tech').toLowerCase();
       if (role !== 'admin') {
-        const debugEl = document.getElementById('addProjectDebug');
         if (debugEl) debugEl.textContent = `❌ Blocked: role is ${role}. Switch Role to Admin.`;
         alert('Admin role required to add projects.');
         return;
       }
 
-      const form = e.target;
       const technician = form.technician.value;
       const name = form.projectName.value;
       const address = form.address.value;
@@ -115,7 +131,6 @@
       const tasks = form.tasks.value.split('\n').filter(Boolean).map(t => ({ name: t, complete: false }));
       const materials = form.materials.value.split('\n').filter(Boolean).map(m => ({ name: m, stage: 0 }));
 
-      const debugEl = document.getElementById('addProjectDebug');
       if (debugEl) debugEl.textContent = 'Submitting...';
 
       const requestBody = { technician, name, address, location, scope, templateId, tasks, materials, updatedBy: 'Admin' };
@@ -134,8 +149,6 @@
         if (debugEl) debugEl.textContent = `✅ Added: ${technician} / ${name}`;
         alert('Project added successfully');
         document.getElementById('addProjectOverlay').style.display='none';
-
-        // Force refresh without relying on stale state.
         const btn = document.getElementById('reloadBtn');
         if (btn) btn.click();
       } else {
