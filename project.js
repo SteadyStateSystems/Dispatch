@@ -104,8 +104,8 @@ function loadProjectData(tech, project) {
 
       const matList = document.getElementById("material-list");
       matList.innerHTML = "";
-      const stages = ["Picked up/on van", "On site", "Installed", "Returning"];
-      const colors = ["gold", "red", "green", "blue"];
+      const stages = ["Unchecked", "Picked up/on van", "On site", "Installed", "Returning"];
+      const colors = ["#666", "gold", "red", "green", "blue"];
 
       materials.forEach((mat, index) => {
         const li = document.createElement("li");
@@ -116,7 +116,7 @@ function loadProjectData(tech, project) {
         cb.checked = stage > 0;
         cb.onclick = () => {
           const current = materials[index].stage ?? 0;
-          const nextStage = (current + 1) % 4;
+          const nextStage = (current + 1) % 5;
           updateStatus(tech, project, "material", mat.name, nextStage, () => loadProjectData(tech, project));
         };
 
@@ -131,7 +131,7 @@ function loadProjectData(tech, project) {
         stageBtn.style.cursor = "pointer";
         stageBtn.onclick = () => {
           const current = materials[index].stage ?? 0;
-          const nextStage = (current + 1) % 4;
+          const nextStage = (current + 1) % 5;
           updateStatus(tech, project, "material", mat.name, nextStage, () => loadProjectData(tech, project));
         };
 
@@ -187,13 +187,21 @@ function loadProjectData(tech, project) {
         matList.appendChild(li);
       });
 
+      const materialWeight = (stage) => {
+        const s = Number(stage ?? 0);
+        if (s === 1) return 0.25;
+        if (s === 2) return 0.5;
+        if (s === 3 || s === 4) return 1;
+        return 0;
+      };
+
       const total = tasks.reduce((sum, t) => sum + (t.subtasks?.length || 1), 0) + materials.length;
       const done = tasks.reduce((sum, t) => {
         if (t.subtasks?.length) {
           return sum + t.subtasks.filter((st) => st.status === 1).length;
         }
         return sum + ((t.complete || t.completed || t.status === 1) ? 1 : 0);
-      }, 0) + materials.filter((m) => (m.stage ?? m.status) === 3).length;
+      }, 0) + materials.reduce((sum, m) => sum + materialWeight(m.stage ?? m.status), 0);
 
       const percent = total ? Math.round((done / total) * 100) : 0;
 
