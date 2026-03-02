@@ -43,6 +43,9 @@ function loadProjectData(tech, project) {
           : task.complete === true || task.completed === true || task.status === 1;
 
         cb.checked = isComplete;
+        cb.onchange = () => {
+          updateStatus(tech, project, "task", task.name, cb.checked ? 1 : 0, () => loadProjectData(tech, project));
+        };
 
         const label = document.createElement("span");
         label.textContent = ` ${task.name}`;
