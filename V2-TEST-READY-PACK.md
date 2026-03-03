@@ -12,7 +12,8 @@
 ## Pre-test startup
 1. Run `restart-stack.bat` from Desktop
 2. Run `v2-smoke-test.bat` from `Project-Management`
-3. Open V2 branch preview/build environment
+3. Run `v2-role-audit.ps1` from `Project-Management`
+4. Open V2 branch preview/build environment
 
 ## Manual acceptance checklist
 - Dashboard loads without JS console errors
