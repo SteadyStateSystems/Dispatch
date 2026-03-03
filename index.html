@@ -30,17 +30,8 @@
       <h2>Add New Project</h2>
       <form id="addProjectForm" onsubmit="return false;" action="javascript:void(0);" method="post">
         <label>Technician:
-          <select name="technician" required>
+          <select name="technician" id="technicianSelect" required>
             <option value="">Select...</option>
-            <option value="Chris">Chris</option>
-            <option value="Mike">Mike</option>
-            <option value="Jason P">Jason P</option>
-            <option value="Gavin">Gavin</option>
-            <option value="Dominic">Dominic</option>
-            <option value="Peter">Peter</option>
-            <option value="Ryan">Ryan</option>
-            <option value="Kevin">Kevin</option>
-            <option value="Gregg">Gregg</option>
           </select>
         </label><br><br>
         <label>Project Name:<br>
@@ -98,8 +89,26 @@
     </div>
   </div>
 
-  <script src="main.js?v=20260303-0615"></script>
-  <script src="pwa.js?v=20260303-0615"></script>
+  <div id="adminTechOverlay" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:#f5f5f5; z-index:9998; overflow:auto; padding:2rem;">
+    <div style="max-width:700px; margin:auto; background:white; padding:2rem; border-radius:1rem; box-shadow:0 0 10px rgba(0,0,0,0.2)">
+      <h2>Technician Management</h2>
+      <div style="display:flex; gap:0.5rem; flex-wrap:wrap; margin-bottom:1rem;">
+        <input id="adminTechName" placeholder="Tech name" />
+        <select id="adminTechRole">
+          <option value="technician">Technician</option>
+          <option value="project_manager">Project Manager</option>
+          <option value="system_admin">System Admin</option>
+        </select>
+        <button type="button" id="adminTechAddBtn">Add / Update</button>
+      </div>
+      <ul id="adminTechList"></ul>
+      <button type="button" onclick="document.getElementById('adminTechOverlay').style.display='none'">Close</button>
+      <div id="adminTechDebug" style="margin-top:0.75rem;color:#333;font-size:0.9rem;"></div>
+    </div>
+  </div>
+
+  <script src="main.js?v=20260303-0952"></script>
+  <script src="pwa.js?v=20260303-0952"></script>
 
   <script>
     const FORM_API_BASE = window.M3T_API_BASE || 'https://adjusted-bluejay-gratefully.ngrok-free.app';
@@ -110,6 +119,7 @@
         if (!res.ok) return;
         const payload = await res.json();
         const sel = document.getElementById('templateSelect');
+        sel.innerHTML = '<option value="">None</option>';
         (payload.templates || []).forEach(t => {
           const opt = document.createElement('option');
           opt.value = t.id;
@@ -119,7 +129,89 @@
       } catch {}
     }
 
+    async function loadTechs() {
+      try {
+        const res = await fetch(`${FORM_API_BASE}/techs`, { headers: { 'ngrok-skip-browser-warning': 'true' } });
+        if (!res.ok) return;
+        const payload = await res.json();
+        const techs = (payload.techs || []).filter(t => t.active !== false);
+
+        const sel = document.getElementById('technicianSelect');
+        if (sel) {
+          const current = sel.value;
+          sel.innerHTML = '<option value="">Select...</option>';
+          techs.forEach(t => {
+            const opt = document.createElement('option');
+            opt.value = t.name;
+            opt.textContent = t.name;
+            sel.appendChild(opt);
+          });
+          if (current) sel.value = current;
+        }
+
+        const list = document.getElementById('adminTechList');
+        if (list) {
+          list.innerHTML = '';
+          techs.forEach(t => {
+            const li = document.createElement('li');
+            li.style.marginBottom = '0.4rem';
+            li.innerHTML = `<strong>${t.name}</strong> (${t.role || 'technician'}) <button data-remove="${t.name}">Remove</button>`;
+            list.appendChild(li);
+          });
+
+          list.querySelectorAll('button[data-remove]').forEach(btn => {
+            btn.addEventListener('click', async () => {
+              const name = btn.getAttribute('data-remove');
+              const role = (document.getElementById('roleMode')?.value || localStorage.getItem('m3t-role') || 'tech').toLowerCase();
+              if (role !== 'admin') return alert('Admin only');
+              const r = await fetch(`${FORM_API_BASE}/admin/techs/remove`, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'ngrok-skip-browser-warning': 'true',
+                  'x-m3t-role': role
+                },
+                body: JSON.stringify({ name, updatedBy: 'Admin', role })
+              });
+              const p = await r.json().catch(()=>({}));
+              const dbg = document.getElementById('adminTechDebug');
+              if (dbg) dbg.textContent = r.ok ? `Removed: ${name}` : `Failed remove: ${p.error || r.status}`;
+              if (r.ok) await loadTechs();
+            });
+          });
+        }
+      } catch {}
+    }
+
+    async function adminUpsertTech() {
+      const role = (document.getElementById('roleMode')?.value || localStorage.getItem('m3t-role') || 'tech').toLowerCase();
+      if (role !== 'admin') return alert('Admin only');
+      const name = document.getElementById('adminTechName').value.trim();
+      const techRole = document.getElementById('adminTechRole').value;
+      if (!name) return alert('Tech name required');
+      const res = await fetch(`${FORM_API_BASE}/admin/techs`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'ngrok-skip-browser-warning': 'true',
+          'x-m3t-role': role
+        },
+        body: JSON.stringify({ name, role: techRole, active: true, updatedBy: 'Admin' })
+      });
+      const payload = await res.json().catch(()=>({}));
+      const dbg = document.getElementById('adminTechDebug');
+      if (dbg) dbg.textContent = res.ok ? `Saved: ${name}` : `Failed: ${payload.error || res.status}`;
+      if (res.ok) {
+        document.getElementById('adminTechName').value = '';
+        await loadTechs();
+      }
+    }
+
+    const adminBtn = document.getElementById('adminTechAddBtn');
+    if (adminBtn) adminBtn.addEventListener('click', adminUpsertTech);
+
     loadTemplates();
+    loadTechs();
 
     const addProjectForm = document.getElementById('addProjectForm');
     addProjectForm.setAttribute('novalidate', 'novalidate');

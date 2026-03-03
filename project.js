@@ -352,11 +352,20 @@ async function loadProjectData(tech, project) {
   renderTimeline(tPayload.entries || []);
   renderAttachments(projectData.attachments || []);
 
-  const events = (projectData.timeEvents || []).slice().sort((a, b) => (a.timestamp || '').localeCompare(b.timestamp || ''));
   const summary = document.getElementById('time-summary');
   if (summary) {
-    const last = events[events.length - 1];
-    summary.textContent = last ? `Last event: ${last.type} @ ${new Date(last.timestamp).toLocaleString()}` : 'No time events yet.';
+    try {
+      const rr = await fetch(`${API_BASE}/time-rollup?tech=${encodeURIComponent(tech)}&project=${encodeURIComponent(project)}`, { headers: { "ngrok-skip-browser-warning": "true" } });
+      const rp = await rr.json();
+      if (rr.ok) {
+        const r = rp.rollup || {};
+        summary.textContent = `Travel To: ${r.travel_to_minutes || 0}m · On Site: ${r.onsite_minutes || 0}m · Travel From: ${r.travel_from_minutes || 0}m · Break: ${r.break_minutes || 0}m · Total: ${r.total_minutes || 0}m`;
+      } else {
+        summary.textContent = 'No time rollup available.';
+      }
+    } catch {
+      summary.textContent = 'No time rollup available.';
+    }
   }
 
   setAdminOnlyButtons();

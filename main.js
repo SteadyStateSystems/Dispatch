@@ -35,6 +35,7 @@ function headerControls() {
       <input id="globalSearch" placeholder="Search tech/project/task/material" />
     </label>
     <button id="globalAddProjectBtn">+ Add Project</button>
+    <button id="adminTechBtn">Tech Admin</button>
     <button id="reloadBtn">Refresh</button>
   `;
   const controlsHost = document.getElementById('dashboardControls');
@@ -46,9 +47,14 @@ function headerControls() {
     appState.role = roleMode.value;
     localStorage.setItem("m3t-role", appState.role);
     const addBtn = document.getElementById("globalAddProjectBtn");
+    const adminTechBtn = document.getElementById("adminTechBtn");
     if (addBtn) {
       addBtn.classList.toggle("disabled-btn", appState.role !== "admin");
       addBtn.title = appState.role !== "admin" ? "Admin only" : "";
+    }
+    if (adminTechBtn) {
+      adminTechBtn.classList.toggle("disabled-btn", appState.role !== "admin");
+      adminTechBtn.title = appState.role !== "admin" ? "Admin only" : "";
     }
     render();
   };
@@ -57,9 +63,14 @@ function headerControls() {
   myTech.value = appState.techFilter;
 
   const addBtn = document.getElementById("globalAddProjectBtn");
+  const adminTechBtn = document.getElementById("adminTechBtn");
   if (addBtn) {
     addBtn.classList.toggle("disabled-btn", appState.role !== "admin");
     addBtn.title = appState.role !== "admin" ? "Admin only" : "";
+  }
+  if (adminTechBtn) {
+    adminTechBtn.classList.toggle("disabled-btn", appState.role !== "admin");
+    adminTechBtn.title = appState.role !== "admin" ? "Admin only" : "";
   }
   myTech.onchange = () => {
     appState.techFilter = myTech.value;
@@ -92,8 +103,20 @@ function headerControls() {
     const overlay = document.getElementById("addProjectOverlay");
     overlay.style.display = "block";
     const techSelect = overlay.querySelector('select[name="technician"]');
-    if (techSelect && appState.techFilter) techSelect.value = appState.techFilter;
+    if (techSelect && appState.techFilter && appState.techFilter !== 'all') techSelect.value = appState.techFilter;
   };
+
+  const adminTechBtn2 = document.getElementById("adminTechBtn");
+  if (adminTechBtn2) {
+    adminTechBtn2.onclick = () => {
+      if (appState.role !== 'admin') {
+        alert('Tech admin is Admin only.');
+        return;
+      }
+      const overlay = document.getElementById('adminTechOverlay');
+      if (overlay) overlay.style.display = 'block';
+    };
+  }
 
   document.getElementById("reloadBtn").onclick = loadData;
 }
