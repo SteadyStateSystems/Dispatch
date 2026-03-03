@@ -39,7 +39,14 @@ function headerControls() {
     <button id="reloadBtn">Refresh</button>
   `;
   const controlsHost = document.getElementById('dashboardControls');
-  if (controlsHost) controlsHost.replaceChildren(wrap);
+  if (controlsHost) {
+    controlsHost.replaceChildren(wrap);
+    const summary = document.createElement('div');
+    summary.id = 'pmSummary';
+    summary.style.color = '#fff';
+    summary.style.marginBottom = '0.75rem';
+    controlsHost.appendChild(summary);
+  }
 
   const roleMode = document.getElementById("roleMode");
   roleMode.value = appState.role;
@@ -57,6 +64,7 @@ function headerControls() {
       adminTechBtn.title = appState.role !== "admin" ? "Admin only" : "";
     }
     render();
+    loadPMSummary();
   };
 
   const myTech = document.getElementById("myTechFilter");
@@ -76,6 +84,7 @@ function headerControls() {
     appState.techFilter = myTech.value;
     localStorage.setItem("m3t-tech", appState.techFilter);
     render();
+    loadPMSummary();
   };
 
   const rangeSel = document.getElementById("scheduleRange");
@@ -85,6 +94,7 @@ function headerControls() {
       appState.scheduleRange = rangeSel.value;
       localStorage.setItem("m3t-range", appState.scheduleRange);
       render();
+      loadPMSummary();
     };
   }
 
@@ -196,6 +206,23 @@ function projectMatches(techName, projectName, project) {
   return blob.includes(q);
 }
 
+async function loadPMSummary() {
+  const box = document.getElementById('pmSummary');
+  if (!box) return;
+  if (!(appState.role === 'admin' || appState.role === 'project_manager')) {
+    box.textContent = '';
+    return;
+  }
+  try {
+    const res = await fetch(`${API_BASE}/pm-summary`, { headers: { "ngrok-skip-browser-warning": "true" } });
+    const p = await res.json();
+    if (!res.ok) throw new Error('summary failed');
+    box.textContent = `PM Summary — Total: ${p.totalProjects || 0} · Overdue: ${p.overdue || 0} · At Risk (48h): ${p.atRisk || 0}`;
+  } catch {
+    box.textContent = 'PM Summary unavailable';
+  }
+}
+
 function render() {
   technicianContainer.innerHTML = "";
   const data = appState.data;
@@ -265,6 +292,7 @@ async function loadData() {
     appState.data = await res.json();
     populateTechFilter();
     render();
+    loadPMSummary();
   } catch (err) {
     console.error(err);
     appState.data = null;

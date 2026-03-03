@@ -80,6 +80,18 @@ function installExtras() {
   `;
   container.appendChild(timeline);
 
+  const notesBox = document.createElement("div");
+  notesBox.className = "collapsible-section";
+  notesBox.innerHTML = `
+    <div class="collapsible-header" onclick="toggleSection('notes-section')">Daily Notes</div>
+    <div class="collapsible-content" id="notes-section">
+      <textarea id="dailyNoteText" rows="3" placeholder="What did you do today?"></textarea>
+      <button class="add-task-btn" id="dailyNoteBtn">Add Note</button>
+      <ul id="daily-notes-list"></ul>
+    </div>
+  `;
+  container.appendChild(notesBox);
+
   const attach = document.createElement("div");
   attach.className = "collapsible-section";
   attach.innerHTML = `
@@ -93,6 +105,14 @@ function installExtras() {
     </div>
   `;
   container.appendChild(attach);
+
+  document.getElementById("dailyNoteBtn").onclick = async () => {
+    const text = document.getElementById("dailyNoteText").value.trim();
+    if (!text) return alert("Note text required.");
+    await apiPost("/daily-notes", { tech: ctx.tech, project: ctx.project, text, user: ctx.tech, role: ctx.role }, true);
+    document.getElementById("dailyNoteText").value = "";
+    loadProjectData(ctx.tech, ctx.project);
+  };
 
   document.getElementById("attachBtn").onclick = async () => {
     const target = document.getElementById("attachTarget").value.trim();
@@ -206,11 +226,35 @@ async function loadProjectData(tech, project) {
   const materials = (projectData.materials || []).filter(m => !m.deletedAt);
   const scopeText = projectData.scope || "No scope of work provided.";
   const locationText = projectData.location || projectData.address || "";
+  const addressText = projectData.address || "";
   const contactText = projectData.siteContactName || projectData.siteContactPhone
     ? `${projectData.siteContactName || ''}${projectData.siteContactName && projectData.siteContactPhone ? ' · ' : ''}${projectData.siteContactPhone || ''}`
     : '';
   const locEl = document.getElementById("project-location");
   if (locEl) locEl.textContent = locationText ? `Location: ${locationText}` : "";
+  const addrEl = document.getElementById("project-address");
+  if (addrEl) addrEl.textContent = addressText ? `Address: ${addressText}` : "";
+  const copyBtn = document.getElementById('copyAddressBtn');
+  if (copyBtn) {
+    copyBtn.onclick = async () => {
+      if (!addressText) return;
+      try {
+        await navigator.clipboard.writeText(addressText);
+        copyBtn.textContent = 'Copied';
+        setTimeout(() => { copyBtn.textContent = 'Copy Address'; }, 1200);
+      } catch {
+        alert('Copy failed');
+      }
+    };
+  }
+  const mapsBtn = document.getElementById('openMapsBtn');
+  if (mapsBtn) {
+    mapsBtn.onclick = () => {
+      if (!addressText) return;
+      window.open(`https://maps.google.com/?q=${encodeURIComponent(addressText)}`, '_blank');
+    };
+  }
+
   const contactEl = document.getElementById("project-contact");
   if (contactEl) contactEl.textContent = contactText ? `Site Contact: ${contactText}` : "";
   document.getElementById("scope-text").textContent = scopeText;
@@ -351,6 +395,16 @@ async function loadProjectData(tech, project) {
   const tPayload = await tRes.json().catch(() => ({ entries: [] }));
   renderTimeline(tPayload.entries || []);
   renderAttachments(projectData.attachments || []);
+
+  const notesList = document.getElementById('daily-notes-list');
+  if (notesList) {
+    notesList.innerHTML = '';
+    (projectData.dailyNotes || []).slice().sort((a,b)=>(b.createdAt||'').localeCompare(a.createdAt||'')).forEach(n => {
+      const li = document.createElement('li');
+      li.textContent = `${new Date(n.createdAt).toLocaleString()} — ${n.user || 'Tech'}: ${n.text}`;
+      notesList.appendChild(li);
+    });
+  }
 
   const summary = document.getElementById('time-summary');
   if (summary) {
