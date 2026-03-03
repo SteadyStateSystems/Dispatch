@@ -10,6 +10,12 @@
 - project_manager
 - technician
 
+## System Admin management functions
+- Add technician
+- Remove technician
+- Activate/deactivate technician
+- Assign role/profile defaults
+
 ## Initial permission boundaries
 - system_admin: all
 - project_manager: planning/assignment/reporting, no system-level config
