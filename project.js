@@ -48,6 +48,30 @@ function installExtras() {
     loadProjectData(ctx.tech, ctx.project);
   };
 
+  const timeBox = document.createElement("div");
+  timeBox.className = "collapsible-section";
+  timeBox.innerHTML = `
+    <div class="collapsible-header" onclick="toggleSection('time-section')">Time Tracking</div>
+    <div class="collapsible-content" id="time-section">
+      <div style="display:flex;gap:0.4rem;flex-wrap:wrap;">
+        <button class="add-task-btn" data-time="travel_to_start">Start Travel To</button>
+        <button class="add-task-btn" data-time="onsite_start">Start On Site</button>
+        <button class="add-task-btn" data-time="travel_from_start">Start Travel From</button>
+        <button class="add-task-btn" data-time="travel_from_end">End Travel From</button>
+      </div>
+      <small id="time-summary" style="display:block;margin-top:0.5rem;color:#333;"></small>
+    </div>
+  `;
+  container.appendChild(timeBox);
+
+  timeBox.querySelectorAll('button[data-time]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const type = btn.getAttribute('data-time');
+      await apiPost('/time-events', { tech: ctx.tech, project: ctx.project, type, user: ctx.tech, source: 'web', role: ctx.role }, true);
+      loadProjectData(ctx.tech, ctx.project);
+    });
+  });
+
   const timeline = document.createElement("div");
   timeline.className = "collapsible-section";
   timeline.innerHTML = `
@@ -182,8 +206,13 @@ async function loadProjectData(tech, project) {
   const materials = (projectData.materials || []).filter(m => !m.deletedAt);
   const scopeText = projectData.scope || "No scope of work provided.";
   const locationText = projectData.location || projectData.address || "";
+  const contactText = projectData.siteContactName || projectData.siteContactPhone
+    ? `${projectData.siteContactName || ''}${projectData.siteContactName && projectData.siteContactPhone ? ' · ' : ''}${projectData.siteContactPhone || ''}`
+    : '';
   const locEl = document.getElementById("project-location");
   if (locEl) locEl.textContent = locationText ? `Location: ${locationText}` : "";
+  const contactEl = document.getElementById("project-contact");
+  if (contactEl) contactEl.textContent = contactText ? `Site Contact: ${contactText}` : "";
   document.getElementById("scope-text").textContent = scopeText;
 
   const taskList = document.getElementById("task-list");
@@ -322,6 +351,14 @@ async function loadProjectData(tech, project) {
   const tPayload = await tRes.json().catch(() => ({ entries: [] }));
   renderTimeline(tPayload.entries || []);
   renderAttachments(projectData.attachments || []);
+
+  const events = (projectData.timeEvents || []).slice().sort((a, b) => (a.timestamp || '').localeCompare(b.timestamp || ''));
+  const summary = document.getElementById('time-summary');
+  if (summary) {
+    const last = events[events.length - 1];
+    summary.textContent = last ? `Last event: ${last.type} @ ${new Date(last.timestamp).toLocaleString()}` : 'No time events yet.';
+  }
+
   setAdminOnlyButtons();
 }
 

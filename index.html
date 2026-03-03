@@ -52,6 +52,33 @@
         <label>Location (site/area):<br>
           <input type="text" name="location" placeholder="e.g., Basement MDF / Floor 2 IDF">
         </label><br><br>
+        <label>Site Contact Name:<br>
+          <input type="text" name="siteContactName" placeholder="Contact name">
+        </label><br><br>
+        <label>Site Contact Phone:<br>
+          <input type="text" name="siteContactPhone" placeholder="(555) 555-5555">
+        </label><br><br>
+        <label>Scheduled Start:<br>
+          <input type="datetime-local" name="scheduledStart">
+        </label><br><br>
+        <label>Scheduled End:<br>
+          <input type="datetime-local" name="scheduledEnd">
+        </label><br><br>
+        <label>Priority:
+          <select name="priority">
+            <option value="normal">Normal</option>
+            <option value="urgent">Urgent</option>
+            <option value="emergency">Emergency</option>
+          </select>
+        </label><br><br>
+        <label>Status:
+          <select name="status">
+            <option value="scheduled">Scheduled</option>
+            <option value="en_route">En Route</option>
+            <option value="on_site">On Site</option>
+            <option value="complete">Complete</option>
+          </select>
+        </label><br><br>
         <label>Template (optional):
           <select name="templateId" id="templateSelect"><option value="">None</option></select>
         </label><br><br>
@@ -71,8 +98,8 @@
     </div>
   </div>
 
-  <script src="main.js?v=20260302-1752"></script>
-  <script src="pwa.js?v=20260302-1752"></script>
+  <script src="main.js?v=20260303-0615"></script>
+  <script src="pwa.js?v=20260303-0615"></script>
 
   <script>
     const FORM_API_BASE = window.M3T_API_BASE || 'https://adjusted-bluejay-gratefully.ngrok-free.app';
@@ -126,6 +153,12 @@
       const name = form.projectName.value;
       const address = form.address.value;
       const location = form.location.value;
+      const siteContactName = form.siteContactName.value;
+      const siteContactPhone = form.siteContactPhone.value;
+      const scheduledStart = form.scheduledStart.value ? new Date(form.scheduledStart.value).toISOString() : null;
+      const scheduledEnd = form.scheduledEnd.value ? new Date(form.scheduledEnd.value).toISOString() : null;
+      const priority = form.priority.value || 'normal';
+      const status = form.status.value || 'scheduled';
       const scope = form.scope.value;
       const templateId = form.templateId.value || '';
       const tasks = form.tasks.value.split('\n').filter(Boolean).map(t => ({ name: t, complete: false }));
@@ -133,7 +166,7 @@
 
       if (debugEl) debugEl.textContent = 'Submitting...';
 
-      const requestBody = { technician, name, address, location, scope, templateId, tasks, materials, updatedBy: 'Admin' };
+      const requestBody = { technician, name, address, location, siteContactName, siteContactPhone, scheduledStart, scheduledEnd, priority, status, assignedTech: technician, scope, templateId, tasks, materials, updatedBy: 'Admin' };
       const response = await fetch(`${FORM_API_BASE}/addProject`, {
         method: 'POST',
         headers: {

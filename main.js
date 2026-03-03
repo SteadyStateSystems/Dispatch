@@ -6,7 +6,9 @@ const appState = {
   data: null,
   role: localStorage.getItem("m3t-role") || "tech",
   techFilter: localStorage.getItem("m3t-tech") || "",
-  query: ""
+  query: "",
+  scheduleRange: localStorage.getItem("m3t-range") || "today",
+  currentTech: localStorage.getItem("m3t-current-tech") || ""
 };
 
 function headerControls() {
@@ -21,6 +23,13 @@ function headerControls() {
     </label>
     <label>My Jobs
       <select id="myTechFilter"><option value="">All techs</option></select>
+    </label>
+    <label>Range
+      <select id="scheduleRange">
+        <option value="today">Today</option>
+        <option value="week">This Week</option>
+        <option value="2weeks">Next 2 Weeks</option>
+      </select>
     </label>
     <label>Search
       <input id="globalSearch" placeholder="Search tech/project/task/material" />
@@ -58,6 +67,16 @@ function headerControls() {
     render();
   };
 
+  const rangeSel = document.getElementById("scheduleRange");
+  if (rangeSel) {
+    rangeSel.value = appState.scheduleRange;
+    rangeSel.onchange = () => {
+      appState.scheduleRange = rangeSel.value;
+      localStorage.setItem("m3t-range", appState.scheduleRange);
+      render();
+    };
+  }
+
   const search = document.getElementById("globalSearch");
   search.oninput = () => {
     appState.query = (search.value || "").toLowerCase().trim();
@@ -90,6 +109,16 @@ function populateTechFilter() {
     opt.textContent = tech;
     myTech.appendChild(opt);
   });
+  if (!appState.currentTech) {
+    appState.currentTech = Object.keys(appState.data.technicians)[0] || "";
+    localStorage.setItem("m3t-current-tech", appState.currentTech);
+  }
+
+  if (!appState.techFilter) {
+    appState.techFilter = appState.currentTech;
+    localStorage.setItem("m3t-tech", appState.techFilter);
+  }
+
   myTech.value = current || appState.techFilter || "";
 }
 
@@ -115,14 +144,29 @@ function projectProgress(project) {
   return total ? Math.round((done / total) * 100) : 0;
 }
 
+function inSelectedRange(project) {
+  if (!project.scheduledStart) return true;
+  const start = new Date();
+  start.setHours(0, 0, 0, 0);
+  const end = new Date(start);
+  if (appState.scheduleRange === 'today') end.setDate(end.getDate() + 1);
+  else if (appState.scheduleRange === 'week') end.setDate(end.getDate() + 7);
+  else end.setDate(end.getDate() + 14);
+  const sched = new Date(project.scheduledStart);
+  return sched >= start && sched < end;
+}
+
 function projectMatches(techName, projectName, project) {
-  if (appState.techFilter && appState.techFilter !== techName) return false;
+  if (appState.techFilter && appState.techFilter !== 'all' && appState.techFilter !== techName) return false;
+  if (!inSelectedRange(project)) return false;
   if (!appState.query) return true;
   const q = appState.query;
   const blob = [
     techName,
     projectName,
     project.scope || "",
+    project.location || "",
+    project.status || "",
     ...(project.tasks || []).map(t => t.name),
     ...(project.materials || []).map(m => m.name)
   ].join(" ").toLowerCase();
@@ -162,8 +206,9 @@ function render() {
       entry.className = "project-entry";
       entry.innerHTML = `
         <strong>${projectName}</strong><br/>
-        ${completion}% Complete
+        ${completion}% Complete · ${project.status || 'scheduled'}
         <div class="progress-bar"><div class="progress-fill" style="width:${completion}%"></div></div>
+        <small>${project.scheduledStart ? `Scheduled: ${new Date(project.scheduledStart).toLocaleString()}` : 'Scheduled: n/a'}</small><br/>
         <small>Updated: ${project.lastUpdated ? new Date(project.lastUpdated).toLocaleString() : "n/a"}</small>
       `;
 
