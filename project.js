@@ -114,6 +114,19 @@ function installExtras() {
   `;
   container.appendChild(closeout);
 
+  const signatureBox = document.createElement("div");
+  signatureBox.className = "collapsible-section";
+  signatureBox.innerHTML = `
+    <div class="collapsible-header" onclick="toggleSection('signature-section')">Signature Capture</div>
+    <div class="collapsible-content" id="signature-section">
+      <input id="signatureSigner" placeholder="Signer name" />
+      <textarea id="signatureData" rows="2" placeholder="Signature text / reference"></textarea>
+      <button class="add-task-btn" id="signatureSaveBtn">Save Signature</button>
+      <small id="signatureStatus" style="display:block;margin-top:0.4rem;color:#333;"></small>
+    </div>
+  `;
+  container.appendChild(signatureBox);
+
   const attach = document.createElement("div");
   attach.className = "collapsible-section";
   attach.innerHTML = `
@@ -127,6 +140,20 @@ function installExtras() {
     </div>
   `;
   container.appendChild(attach);
+
+  document.getElementById("signatureSaveBtn").onclick = async () => {
+    const signer = document.getElementById('signatureSigner').value.trim();
+    const signatureData = document.getElementById('signatureData').value.trim();
+    const st = document.getElementById('signatureStatus');
+    if (!signer || !signatureData) return alert('Signer and signature are required.');
+    try {
+      await apiPost('/signature', { tech: ctx.tech, project: ctx.project, signer, signatureData, updatedBy: ctx.tech, role: ctx.role }, true);
+      if (st) st.textContent = 'Signature saved';
+      loadProjectData(ctx.tech, ctx.project);
+    } catch (err) {
+      if (st) st.textContent = `Signature failed: ${err.message}`;
+    }
+  };
 
   document.getElementById("dailyNoteBtn").onclick = async () => {
     const text = document.getElementById("dailyNoteText").value.trim();
@@ -268,9 +295,7 @@ async function loadProjectData(tech, project) {
   const scopeText = projectData.scope || "No scope of work provided.";
   const locationText = projectData.location || projectData.address || "";
   const addressText = projectData.address || "";
-  const contactText = projectData.siteContactName || projectData.siteContactPhone
-    ? `${projectData.siteContactName || ''}${projectData.siteContactName && projectData.siteContactPhone ? ' · ' : ''}${projectData.siteContactPhone || ''}`
-    : '';
+  const contactText = [projectData.siteContactName, projectData.siteContactPhone, projectData.siteContactEmail].filter(Boolean).join(' · ');
   const locEl = document.getElementById("project-location");
   if (locEl) locEl.textContent = locationText ? `Location: ${locationText}` : "";
   const addrEl = document.getElementById("project-address");
@@ -298,6 +323,16 @@ async function loadProjectData(tech, project) {
 
   const contactEl = document.getElementById("project-contact");
   if (contactEl) contactEl.textContent = contactText ? `Site Contact: ${contactText}` : "";
+  const accessEl = document.getElementById('project-access');
+  if (accessEl) accessEl.textContent = projectData.accessInstructions ? `Access: ${projectData.accessInstructions}` : '';
+  const warrantyEl = document.getElementById('project-warranty');
+  if (warrantyEl) warrantyEl.textContent = projectData.warrantyFlag ? `Warranty/Contract: ${projectData.warrantyFlag}` : '';
+
+  const signer = document.getElementById('signatureSigner');
+  const sigData = document.getElementById('signatureData');
+  if (signer && projectData.signature?.signer) signer.value = projectData.signature.signer;
+  if (sigData && projectData.signature?.signatureData) sigData.value = projectData.signature.signatureData;
+
   document.getElementById("scope-text").textContent = scopeText;
 
   const taskList = document.getElementById("task-list");

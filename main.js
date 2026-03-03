@@ -45,6 +45,7 @@ function headerControls() {
       <input id="globalSearch" placeholder="Search tech/project/task/material" />
     </label>
     <button id="globalAddProjectBtn">+ Add Project</button>
+    <button id="dispatchBoardBtn">Dispatch Board</button>
     <button id="adminTechBtn">Tech Admin</button>
     <button id="reloadBtn">Refresh</button>
   `;
@@ -125,6 +126,30 @@ function headerControls() {
     const techSelect = overlay.querySelector('select[name="technician"]');
     if (techSelect && appState.techFilter && appState.techFilter !== 'all') techSelect.value = appState.techFilter;
   };
+
+  const dispatchBtn = document.getElementById('dispatchBoardBtn');
+  if (dispatchBtn) {
+    dispatchBtn.onclick = async () => {
+      try {
+        const res = await fetch(`${API_BASE}/dispatch-board`, { headers: { "ngrok-skip-browser-warning": "true" } });
+        const p = await res.json();
+        if (!res.ok) throw new Error('Dispatch load failed');
+        const list = document.getElementById('dispatchBoardList');
+        if (list) {
+          list.innerHTML = '';
+          (p.items || []).slice(0, 200).forEach(it => {
+            const li = document.createElement('li');
+            li.textContent = `${it.tech} · ${it.project} · ${it.status} · ${it.priority} · ${it.scheduledStart ? new Date(it.scheduledStart).toLocaleString() : 'unscheduled'}`;
+            list.appendChild(li);
+          });
+        }
+        const ov = document.getElementById('dispatchOverlay');
+        if (ov) ov.style.display = 'block';
+      } catch (e) {
+        alert(`Dispatch board failed: ${e.message}`);
+      }
+    };
+  }
 
   const adminTechBtn2 = document.getElementById("adminTechBtn");
   if (adminTechBtn2) {

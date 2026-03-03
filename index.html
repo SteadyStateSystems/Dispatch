@@ -49,6 +49,37 @@
         <label>Site Contact Phone:<br>
           <input type="text" name="siteContactPhone" placeholder="(555) 555-5555">
         </label><br><br>
+        <label>Site Contact Email:<br>
+          <input type="email" name="siteContactEmail" placeholder="name@example.com">
+        </label><br><br>
+        <label>Preferred Contact Method:
+          <select name="preferredContactMethod">
+            <option value="">Not Set</option>
+            <option value="phone">Phone</option>
+            <option value="text">Text</option>
+            <option value="email">Email</option>
+          </select>
+        </label><br><br>
+        <label>Access Instructions:<br>
+          <input type="text" name="accessInstructions" placeholder="Gate code, parking, entry notes">
+        </label><br><br>
+        <label>Warranty/Contract Flag:
+          <input type="text" name="warrantyFlag" placeholder="e.g., Warranty Active">
+        </label><br><br>
+        <label>ETA Window Start:<br>
+          <input type="datetime-local" name="etaWindowStart">
+        </label><br><br>
+        <label>ETA Window End:<br>
+          <input type="datetime-local" name="etaWindowEnd">
+        </label><br><br>
+        <label>Recurring Schedule:
+          <select name="recurrence">
+            <option value="">None</option>
+            <option value="weekly">Weekly</option>
+            <option value="biweekly">Biweekly</option>
+            <option value="monthly">Monthly</option>
+          </select>
+        </label><br><br>
         <label>Scheduled Start:<br>
           <input type="datetime-local" name="scheduledStart">
         </label><br><br>
@@ -89,6 +120,14 @@
     </div>
   </div>
 
+  <div id="dispatchOverlay" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:#f5f5f5; z-index:9998; overflow:auto; padding:2rem;">
+    <div style="max-width:900px; margin:auto; background:white; padding:2rem; border-radius:1rem; box-shadow:0 0 10px rgba(0,0,0,0.2)">
+      <h2>Dispatch Board (Skeleton)</h2>
+      <ul id="dispatchBoardList"></ul>
+      <button type="button" onclick="document.getElementById('dispatchOverlay').style.display='none'">Close</button>
+    </div>
+  </div>
+
   <div id="adminTechOverlay" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:#f5f5f5; z-index:9998; overflow:auto; padding:2rem;">
     <div style="max-width:700px; margin:auto; background:white; padding:2rem; border-radius:1rem; box-shadow:0 0 10px rgba(0,0,0,0.2)">
       <h2>Technician Management</h2>
@@ -111,8 +150,8 @@
     </div>
   </div>
 
-  <script src="main.js?v=20260303-1421"></script>
-  <script src="pwa.js?v=20260303-1421"></script>
+  <script src="main.js?v=20260303-1844"></script>
+  <script src="pwa.js?v=20260303-1844"></script>
 
   <script>
     const FORM_API_BASE = window.M3T_API_BASE || 'https://adjusted-bluejay-gratefully.ngrok-free.app';
@@ -288,6 +327,13 @@
       const location = form.location.value;
       const siteContactName = form.siteContactName.value;
       const siteContactPhone = form.siteContactPhone.value;
+      const siteContactEmail = form.siteContactEmail.value;
+      const preferredContactMethod = form.preferredContactMethod.value || '';
+      const accessInstructions = form.accessInstructions.value || '';
+      const warrantyFlag = form.warrantyFlag.value || '';
+      const etaWindowStart = form.etaWindowStart.value ? new Date(form.etaWindowStart.value).toISOString() : null;
+      const etaWindowEnd = form.etaWindowEnd.value ? new Date(form.etaWindowEnd.value).toISOString() : null;
+      const recurrence = form.recurrence.value || null;
       const scheduledStart = form.scheduledStart.value ? new Date(form.scheduledStart.value).toISOString() : null;
       const scheduledEnd = form.scheduledEnd.value ? new Date(form.scheduledEnd.value).toISOString() : null;
       const priority = form.priority.value || 'normal';
@@ -299,7 +345,15 @@
 
       if (debugEl) debugEl.textContent = 'Submitting...';
 
-      const requestBody = { technician, name, address, location, siteContactName, siteContactPhone, scheduledStart, scheduledEnd, priority, status, assignedTech: technician, scope, templateId, tasks, materials, updatedBy: 'Admin' };
+      const requestBody = {
+        technician, name, address, location,
+        siteContactName, siteContactPhone, siteContactEmail,
+        preferredContactMethod, accessInstructions, warrantyFlag,
+        etaWindowStart, etaWindowEnd, recurrence,
+        scheduledStart, scheduledEnd, priority, status,
+        assignedTech: technician,
+        scope, templateId, tasks, materials, updatedBy: 'Admin'
+      };
       const response = await fetch(`${FORM_API_BASE}/addProject`, {
         method: 'POST',
         headers: {
