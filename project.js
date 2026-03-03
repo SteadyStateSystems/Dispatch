@@ -97,6 +97,22 @@ function installExtras() {
   `;
   container.appendChild(notesBox);
 
+  const closeout = document.createElement("div");
+  closeout.className = "collapsible-section";
+  closeout.innerHTML = `
+    <div class="collapsible-header" onclick="toggleSection('closeout-section')">Closeout Checklist</div>
+    <div class="collapsible-content" id="closeout-section">
+      <label><input type="checkbox" id="co_scope_completed" /> Scope completed</label><br/>
+      <label><input type="checkbox" id="co_materials_accounted" /> Materials accounted</label><br/>
+      <label><input type="checkbox" id="co_site_clean" /> Site clean</label><br/>
+      <label><input type="checkbox" id="co_customer_notified" /> Customer notified</label><br/>
+      <input id="co_photos" placeholder="Photo tags (comma separated): before,after" />
+      <button class="add-task-btn" id="closeoutSaveBtn">Save Closeout</button>
+      <small id="closeoutStatus" style="display:block;margin-top:0.4rem;color:#333;"></small>
+    </div>
+  `;
+  container.appendChild(closeout);
+
   const attach = document.createElement("div");
   attach.className = "collapsible-section";
   attach.innerHTML = `
@@ -116,6 +132,20 @@ function installExtras() {
     if (!text) return alert("Note text required.");
     await apiPost("/daily-notes", { tech: ctx.tech, project: ctx.project, text, user: ctx.tech, role: ctx.role }, true);
     document.getElementById("dailyNoteText").value = "";
+    loadProjectData(ctx.tech, ctx.project);
+  };
+
+  document.getElementById("closeoutSaveBtn").onclick = async () => {
+    const checklist = {
+      scope_completed: !!document.getElementById('co_scope_completed')?.checked,
+      materials_accounted: !!document.getElementById('co_materials_accounted')?.checked,
+      site_clean: !!document.getElementById('co_site_clean')?.checked,
+      customer_notified: !!document.getElementById('co_customer_notified')?.checked
+    };
+    const photos = (document.getElementById('co_photos')?.value || '').split(',').map(s => s.trim()).filter(Boolean);
+    await apiPost('/closeout-check', { tech: ctx.tech, project: ctx.project, checklist, photos, updatedBy: ctx.tech, role: ctx.role }, true);
+    const st = document.getElementById('closeoutStatus');
+    if (st) st.textContent = 'Closeout saved';
     loadProjectData(ctx.tech, ctx.project);
   };
 
@@ -400,6 +430,15 @@ async function loadProjectData(tech, project) {
   const tPayload = await tRes.json().catch(() => ({ entries: [] }));
   renderTimeline(tPayload.entries || []);
   renderAttachments(projectData.attachments || []);
+
+  const closeout = projectData.closeout || {};
+  const setCheck = (id, v) => { const el = document.getElementById(id); if (el) el.checked = !!v; };
+  setCheck('co_scope_completed', closeout.checklist?.scope_completed);
+  setCheck('co_materials_accounted', closeout.checklist?.materials_accounted);
+  setCheck('co_site_clean', closeout.checklist?.site_clean);
+  setCheck('co_customer_notified', closeout.checklist?.customer_notified);
+  const p = document.getElementById('co_photos');
+  if (p) p.value = Array.isArray(closeout.photos) ? closeout.photos.join(', ') : '';
 
   const notesList = document.getElementById('daily-notes-list');
   if (notesList) {
