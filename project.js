@@ -107,6 +107,7 @@ function installExtras() {
       <label><input type="checkbox" id="co_site_clean" /> Site clean</label><br/>
       <label><input type="checkbox" id="co_customer_notified" /> Customer notified</label><br/>
       <input id="co_photos" placeholder="Photo tags (comma separated): before,after" />
+      <small id="closeoutRulesHint" style="display:block;margin:0.4rem 0;color:#555;"></small>
       <button class="add-task-btn" id="closeoutSaveBtn">Save Closeout</button>
       <small id="closeoutStatus" style="display:block;margin-top:0.4rem;color:#333;"></small>
     </div>
@@ -143,10 +144,15 @@ function installExtras() {
       customer_notified: !!document.getElementById('co_customer_notified')?.checked
     };
     const photos = (document.getElementById('co_photos')?.value || '').split(',').map(s => s.trim()).filter(Boolean);
-    await apiPost('/closeout-check', { tech: ctx.tech, project: ctx.project, checklist, photos, updatedBy: ctx.tech, role: ctx.role }, true);
     const st = document.getElementById('closeoutStatus');
-    if (st) st.textContent = 'Closeout saved';
-    loadProjectData(ctx.tech, ctx.project);
+    try {
+      await apiPost('/closeout-check', { tech: ctx.tech, project: ctx.project, checklist, photos, updatedBy: ctx.tech, role: ctx.role }, true);
+      if (st) st.textContent = 'Closeout saved';
+      loadProjectData(ctx.tech, ctx.project);
+    } catch (err) {
+      if (st) st.textContent = `Closeout failed: ${err.message}`;
+      alert(`Closeout failed: ${err.message}`);
+    }
   };
 
   document.getElementById("attachBtn").onclick = async () => {
@@ -432,6 +438,16 @@ async function loadProjectData(tech, project) {
   renderAttachments(projectData.attachments || []);
 
   const closeout = projectData.closeout || {};
+  try {
+    const rr = await fetch(`${API_BASE}/closeout-rules`, { headers: { "ngrok-skip-browser-warning": "true" } });
+    const rp = await rr.json().catch(() => ({}));
+    const hint = document.getElementById('closeoutRulesHint');
+    if (hint) {
+      const photoMode = rp.requiredPhotoEnforcement ? 'Required photos enforced' : 'Required photos optional';
+      hint.textContent = `Rules: checklist required · ${photoMode}`;
+    }
+  } catch {}
+
   const setCheck = (id, v) => { const el = document.getElementById(id); if (el) el.checked = !!v; };
   setCheck('co_scope_completed', closeout.checklist?.scope_completed);
   setCheck('co_materials_accounted', closeout.checklist?.materials_accounted);

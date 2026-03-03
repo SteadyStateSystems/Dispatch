@@ -227,7 +227,9 @@ async function loadPMSummary() {
     const res = await fetch(`${API_BASE}/pm-summary`, { headers: { "ngrok-skip-browser-warning": "true" } });
     const p = await res.json();
     if (!res.ok) throw new Error('summary failed');
-    box.textContent = `PM Summary — Total: ${p.totalProjects || 0} · Overdue: ${p.overdue || 0} · At Risk (48h): ${p.atRisk || 0}`;
+    const hours = p.hoursByTech || {};
+    const hourText = Object.entries(hours).slice(0, 3).map(([k,v]) => `${k}:${v}h`).join(' · ');
+    box.textContent = `PM Summary — Total: ${p.totalProjects || 0} · Overdue: ${p.overdue || 0} · At Risk (48h): ${p.atRisk || 0}${hourText ? ` · Hours: ${hourText}` : ''}`;
   } catch {
     box.textContent = 'PM Summary unavailable';
   }
