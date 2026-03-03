@@ -102,13 +102,17 @@
         <button type="button" id="adminTechAddBtn">Add / Update</button>
       </div>
       <ul id="adminTechList"></ul>
+      <hr/>
+      <h3>Feature Toggles</h3>
+      <label><input type="checkbox" id="toggleRequiredPhotos" /> Enforce required closeout photos (before/after)</label>
+      <button type="button" id="saveFeatureTogglesBtn">Save Toggles</button>
       <button type="button" onclick="document.getElementById('adminTechOverlay').style.display='none'">Close</button>
       <div id="adminTechDebug" style="margin-top:0.75rem;color:#333;font-size:0.9rem;"></div>
     </div>
   </div>
 
-  <script src="main.js?v=20260303-1248"></script>
-  <script src="pwa.js?v=20260303-1248"></script>
+  <script src="main.js?v=20260303-1330"></script>
+  <script src="pwa.js?v=20260303-1330"></script>
 
   <script>
     const FORM_API_BASE = window.M3T_API_BASE || 'https://adjusted-bluejay-gratefully.ngrok-free.app';
@@ -183,9 +187,43 @@
       } catch {}
     }
 
+    async function loadFeatureToggles() {
+      const role = (document.getElementById('roleMode')?.value || localStorage.getItem('m3t-role') || 'tech').toLowerCase();
+      if (!['admin','system_admin'].includes(role)) return;
+      try {
+        const res = await fetch(`${FORM_API_BASE}/admin/feature-toggles`, {
+          headers: {
+            'ngrok-skip-browser-warning': 'true',
+            'x-m3t-role': role
+          }
+        });
+        const p = await res.json().catch(()=>({}));
+        const chk = document.getElementById('toggleRequiredPhotos');
+        if (chk) chk.checked = !!p.featureToggles?.requiredPhotoEnforcement;
+      } catch {}
+    }
+
+    async function saveFeatureToggles() {
+      const role = (document.getElementById('roleMode')?.value || localStorage.getItem('m3t-role') || 'tech').toLowerCase();
+      if (!['admin','system_admin'].includes(role)) return alert('System Admin only');
+      const requiredPhotoEnforcement = !!document.getElementById('toggleRequiredPhotos')?.checked;
+      const res = await fetch(`${FORM_API_BASE}/admin/feature-toggles`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'ngrok-skip-browser-warning': 'true',
+          'x-m3t-role': role
+        },
+        body: JSON.stringify({ requiredPhotoEnforcement, updatedBy: 'System Admin' })
+      });
+      const p = await res.json().catch(()=>({}));
+      const dbg = document.getElementById('adminTechDebug');
+      if (dbg) dbg.textContent = res.ok ? 'Feature toggles saved' : `Failed toggle save: ${p.error || res.status}`;
+    }
+
     async function adminUpsertTech() {
       const role = (document.getElementById('roleMode')?.value || localStorage.getItem('m3t-role') || 'tech').toLowerCase();
-      if (!['admin','system_admin','project_manager'].includes(role)) return alert('Admin only');
+      if (!['admin','system_admin'].includes(role)) return alert('System Admin only');
       const name = document.getElementById('adminTechName').value.trim();
       const techRole = document.getElementById('adminTechRole').value;
       if (!name) return alert('Tech name required');
@@ -196,7 +234,7 @@
           'ngrok-skip-browser-warning': 'true',
           'x-m3t-role': role
         },
-        body: JSON.stringify({ name, role: techRole, active: true, updatedBy: 'Admin' })
+        body: JSON.stringify({ name, role: techRole, active: true, updatedBy: 'System Admin' })
       });
       const payload = await res.json().catch(()=>({}));
       const dbg = document.getElementById('adminTechDebug');
@@ -209,9 +247,12 @@
 
     const adminBtn = document.getElementById('adminTechAddBtn');
     if (adminBtn) adminBtn.addEventListener('click', adminUpsertTech);
+    const toggleBtn = document.getElementById('saveFeatureTogglesBtn');
+    if (toggleBtn) toggleBtn.addEventListener('click', saveFeatureToggles);
 
     loadTemplates();
     loadTechs();
+    loadFeatureToggles();
 
     const addProjectForm = document.getElementById('addProjectForm');
     addProjectForm.setAttribute('novalidate', 'novalidate');

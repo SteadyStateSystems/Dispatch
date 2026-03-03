@@ -15,6 +15,10 @@ function isAdminRole(role) {
   return role === "admin" || role === "system_admin";
 }
 
+function isSystemAdmin(role) {
+  return role === "system_admin" || role === "admin";
+}
+
 
 function headerControls() {
   const wrap = document.createElement("div");
@@ -66,8 +70,8 @@ function headerControls() {
       addBtn.title = !isAdminRole(appState.role) ? "Admin only" : "";
     }
     if (adminTechBtn) {
-      adminTechBtn.classList.toggle("disabled-btn", !isAdminRole(appState.role));
-      adminTechBtn.title = !isAdminRole(appState.role) ? "Admin only" : "";
+      adminTechBtn.classList.toggle("disabled-btn", !isSystemAdmin(appState.role));
+      adminTechBtn.title = !isSystemAdmin(appState.role) ? "System Admin only" : "";
     }
     render();
     loadPMSummary();
@@ -83,8 +87,8 @@ function headerControls() {
     addBtn.title = !isAdminRole(appState.role) ? "Admin only" : "";
   }
   if (adminTechBtn) {
-    adminTechBtn.classList.toggle("disabled-btn", !isAdminRole(appState.role));
-    adminTechBtn.title = !isAdminRole(appState.role) ? "Admin only" : "";
+    adminTechBtn.classList.toggle("disabled-btn", !isSystemAdmin(appState.role));
+    adminTechBtn.title = !isSystemAdmin(appState.role) ? "System Admin only" : "";
   }
   myTech.onchange = () => {
     appState.techFilter = myTech.value;
@@ -125,8 +129,8 @@ function headerControls() {
   const adminTechBtn2 = document.getElementById("adminTechBtn");
   if (adminTechBtn2) {
     adminTechBtn2.onclick = () => {
-      if (!isAdminRole(appState.role)) {
-        alert('Tech admin is Admin only.');
+      if (!isSystemAdmin(appState.role)) {
+        alert('Tech admin is System Admin only.');
         return;
       }
       const overlay = document.getElementById('adminTechOverlay');
