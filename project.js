@@ -10,6 +10,10 @@ const ctx = {
 
 localStorage.setItem("m3t-role", ctx.role);
 
+function isAdminRole(role) {
+  return role === "admin" || role === "system_admin";
+}
+
 document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("project-name").textContent = ctx.project || "Project";
   installExtras();
@@ -27,7 +31,8 @@ function installExtras() {
     <strong>Role:</strong>
     <select id="roleModeProject">
       <option value="tech">Tech</option>
-      <option value="admin">Admin</option>
+      <option value="project_manager">Project Manager</option>
+      <option value="system_admin">System Admin</option>
     </select>
     <button id="undoBtn">Undo</button>
     <span id="offlineBadge"></span>
@@ -43,7 +48,7 @@ function installExtras() {
   };
 
   document.getElementById("undoBtn").onclick = async () => {
-    if (ctx.role !== "admin") return alert("Admin role required.");
+    if (!isAdminRole(ctx.role)) return alert("Admin role required.");
     await apiPost("/undo", { updatedBy: "Admin", role: ctx.role }, true);
     loadProjectData(ctx.tech, ctx.project);
   };

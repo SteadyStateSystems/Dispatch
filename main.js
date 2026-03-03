@@ -11,6 +11,11 @@ const appState = {
   currentTech: localStorage.getItem("m3t-current-tech") || ""
 };
 
+function isAdminRole(role) {
+  return role === "admin" || role === "system_admin";
+}
+
+
 function headerControls() {
   const wrap = document.createElement("div");
   wrap.className = "top-controls";
@@ -18,7 +23,8 @@ function headerControls() {
     <label>Role
       <select id="roleMode">
         <option value="tech">Tech</option>
-        <option value="admin">Admin</option>
+        <option value="project_manager">Project Manager</option>
+        <option value="system_admin">System Admin</option>
       </select>
     </label>
     <label>My Jobs
@@ -56,12 +62,12 @@ function headerControls() {
     const addBtn = document.getElementById("globalAddProjectBtn");
     const adminTechBtn = document.getElementById("adminTechBtn");
     if (addBtn) {
-      addBtn.classList.toggle("disabled-btn", appState.role !== "admin");
-      addBtn.title = appState.role !== "admin" ? "Admin only" : "";
+      addBtn.classList.toggle("disabled-btn", !isAdminRole(appState.role));
+      addBtn.title = !isAdminRole(appState.role) ? "Admin only" : "";
     }
     if (adminTechBtn) {
-      adminTechBtn.classList.toggle("disabled-btn", appState.role !== "admin");
-      adminTechBtn.title = appState.role !== "admin" ? "Admin only" : "";
+      adminTechBtn.classList.toggle("disabled-btn", !isAdminRole(appState.role));
+      adminTechBtn.title = !isAdminRole(appState.role) ? "Admin only" : "";
     }
     render();
     loadPMSummary();
@@ -73,12 +79,12 @@ function headerControls() {
   const addBtn = document.getElementById("globalAddProjectBtn");
   const adminTechBtn = document.getElementById("adminTechBtn");
   if (addBtn) {
-    addBtn.classList.toggle("disabled-btn", appState.role !== "admin");
-    addBtn.title = appState.role !== "admin" ? "Admin only" : "";
+    addBtn.classList.toggle("disabled-btn", !isAdminRole(appState.role));
+    addBtn.title = !isAdminRole(appState.role) ? "Admin only" : "";
   }
   if (adminTechBtn) {
-    adminTechBtn.classList.toggle("disabled-btn", appState.role !== "admin");
-    adminTechBtn.title = appState.role !== "admin" ? "Admin only" : "";
+    adminTechBtn.classList.toggle("disabled-btn", !isAdminRole(appState.role));
+    adminTechBtn.title = !isAdminRole(appState.role) ? "Admin only" : "";
   }
   myTech.onchange = () => {
     appState.techFilter = myTech.value;
@@ -106,7 +112,7 @@ function headerControls() {
 
   const addProjectBtn = document.getElementById("globalAddProjectBtn");
   addProjectBtn.onclick = () => {
-    if (appState.role !== "admin") {
+    if (!isAdminRole(appState.role)) {
       alert("Add Project is Admin only. Switch Role to Admin.");
       return;
     }
@@ -119,7 +125,7 @@ function headerControls() {
   const adminTechBtn2 = document.getElementById("adminTechBtn");
   if (adminTechBtn2) {
     adminTechBtn2.onclick = () => {
-      if (appState.role !== 'admin') {
+      if (!isAdminRole(appState.role)) {
         alert('Tech admin is Admin only.');
         return;
       }
@@ -302,3 +308,4 @@ async function loadData() {
 
 headerControls();
 loadData();
+

@@ -163,7 +163,7 @@
             btn.addEventListener('click', async () => {
               const name = btn.getAttribute('data-remove');
               const role = (document.getElementById('roleMode')?.value || localStorage.getItem('m3t-role') || 'tech').toLowerCase();
-              if (role !== 'admin') return alert('Admin only');
+              if (!['admin','system_admin','project_manager'].includes(role)) return alert('Admin only');
               const r = await fetch(`${FORM_API_BASE}/admin/techs/remove`, {
                 method: 'POST',
                 headers: {
@@ -185,7 +185,7 @@
 
     async function adminUpsertTech() {
       const role = (document.getElementById('roleMode')?.value || localStorage.getItem('m3t-role') || 'tech').toLowerCase();
-      if (role !== 'admin') return alert('Admin only');
+      if (!['admin','system_admin','project_manager'].includes(role)) return alert('Admin only');
       const name = document.getElementById('adminTechName').value.trim();
       const techRole = document.getElementById('adminTechRole').value;
       if (!name) return alert('Tech name required');
@@ -235,7 +235,7 @@
 
       const roleSelectEl = document.getElementById('roleMode');
       const role = (roleSelectEl?.value || localStorage.getItem('m3t-role') || 'tech').toLowerCase();
-      if (role !== 'admin') {
+      if (!['admin','system_admin','project_manager'].includes(role)) {
         if (debugEl) debugEl.textContent = `❌ Blocked: role is ${role}. Switch Role to Admin.`;
         alert('Admin role required to add projects.');
         return;
@@ -288,3 +288,4 @@
   </script>
 </body>
 </html>
+
