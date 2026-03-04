@@ -556,7 +556,7 @@ async function loadPMSummary() {
     if (!pmRes.ok) throw new Error('summary failed');
     const hours = p.hoursByTech || {};
     const hourText = Object.entries(hours).slice(0, 3).map(([k,v]) => `${k}:${v}h`).join(' · ');
-    const finText = finRes.ok ? ` · Margin: $${(f.estimatedMargin || 0).toFixed(2)} · Invoices P/I/N: ${f.invoiceCounts?.paid || 0}/${f.invoiceCounts?.invoiced || 0}/${f.invoiceCounts?.notInvoiced || 0} · Overdue Inv: ${f.invoiceCounts?.overdueInvoiced || 0} · Paid 30d: ${f.invoiceCounts?.paidLast30d || 0}` : '';
+    const finText = finRes.ok ? ` · Margin: $${(f.estimatedMargin || 0).toFixed(2)} · Invoices P/I/N: ${f.invoiceCounts?.paid || 0}/${f.invoiceCounts?.invoiced || 0}/${f.invoiceCounts?.notInvoiced || 0} · Overdue Inv: ${f.invoiceCounts?.overdueInvoiced || 0} · Paid 30d: ${f.invoiceCounts?.paidLast30d || 0} · Collected 30d: $${(f.collectedLast30d || 0).toFixed(2)} · Collection Rate: ${(f.collectionRate || 0).toFixed(1)}%` : '';
     box.textContent = `PM Summary — Total: ${p.totalProjects || 0} · Overdue: ${p.overdue || 0} · At Risk (48h): ${p.atRisk || 0}${hourText ? ` · Hours: ${hourText}` : ''}${finText}`;
   } catch {
     box.textContent = 'PM Summary unavailable';
