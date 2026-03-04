@@ -182,9 +182,11 @@ function headerControls() {
       li.style.border = '1px solid #ddd';
       li.style.borderRadius = '8px';
       li.style.padding = '0.6rem';
+      const etaText = it.lastEtaNotification?.sentAt ? `Last ETA: ${new Date(it.lastEtaNotification.sentAt).toLocaleString()}` : 'Last ETA: none';
       li.innerHTML = `
         <div><strong>${it.project}</strong> · ${it.tech} · ${it.status} · ${it.priority}</div>
         <div style="font-size:12px;color:#555;">${it.scheduledStart ? new Date(it.scheduledStart).toLocaleString() : 'Unscheduled'}</div>
+        <div style="font-size:12px;color:#666;">${etaText}</div>
         <div style="margin-top:0.4rem; display:flex; gap:0.4rem; flex-wrap:wrap;">
           <button data-action="top">Move to Top</button>
           <button data-action="earlier">-30m</button>
@@ -258,6 +260,18 @@ function headerControls() {
   if (dispatchRefreshBtn) {
     dispatchRefreshBtn.onclick = async () => {
       try { await renderDispatchBoard(); } catch (e) { alert(`Refresh failed: ${e.message}`); }
+    };
+  }
+
+  const dispatchPreviewRecurrenceBtn = document.getElementById('dispatchPreviewRecurrenceBtn');
+  if (dispatchPreviewRecurrenceBtn) {
+    dispatchPreviewRecurrenceBtn.onclick = async () => {
+      try {
+        const out = await dispatchAction('/dispatch/run-recurrence', { dryRun: true });
+        alert(`Recurrence preview: ${(out.created || []).length} jobs would be created.`);
+      } catch (e) {
+        alert(`Recurrence preview failed: ${e.message}`);
+      }
     };
   }
 
