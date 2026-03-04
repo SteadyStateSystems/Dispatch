@@ -305,7 +305,35 @@ function headerControls() {
         li.style.border = '1px solid #ddd';
         li.style.borderRadius = '8px';
         li.style.padding = '0.5rem';
-        li.textContent = `${it.tech} · ${it.project} · ${it.invoiceStatus} · Budget $${(it.budgetAmount||0).toFixed(2)} · Cost $${(it.actualCost||0).toFixed(2)} · Margin $${(it.margin||0).toFixed(2)}`;
+        li.innerHTML = `
+          <div><strong>${it.tech}</strong> · ${it.project}</div>
+          <div style="font-size:12px;color:#555;">Status: ${it.invoiceStatus} · Budget $${(it.budgetAmount||0).toFixed(2)} · Cost $${(it.actualCost||0).toFixed(2)} · Margin $${(it.margin||0).toFixed(2)}</div>
+          <div style="margin-top:0.35rem; display:flex; gap:0.35rem; flex-wrap:wrap;">
+            <button data-act="inv">Mark Invoiced</button>
+            <button data-act="paid">Mark Paid</button>
+            <button data-act="reset">Reset</button>
+          </div>
+        `;
+
+        const setStatus = async (invoiceStatus) => {
+          const r = await fetch(`${API_BASE}/project-invoice-status`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'x-m3t-api-key': localStorage.getItem('m3t-api-key') || '',
+              'x-m3t-role': appState.role || 'project_manager',
+              'ngrok-skip-browser-warning': 'true'
+            },
+            body: JSON.stringify({ tech: it.tech, project: it.project, invoiceStatus, updatedBy: 'PM', role: appState.role })
+          });
+          const body = await r.json().catch(() => ({}));
+          if (!r.ok) throw new Error(body.error || `HTTP ${r.status}`);
+        };
+
+        li.querySelector('[data-act="inv"]').onclick = async () => { try { await setStatus('invoiced'); await renderFinanceBoard(); } catch (e) { alert(e.message); } };
+        li.querySelector('[data-act="paid"]').onclick = async () => { try { await setStatus('paid'); await renderFinanceBoard(); } catch (e) { alert(e.message); } };
+        li.querySelector('[data-act="reset"]').onclick = async () => { try { await setStatus('not_invoiced'); await renderFinanceBoard(); } catch (e) { alert(e.message); } };
+
         list.appendChild(li);
       });
     }
