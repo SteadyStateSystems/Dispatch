@@ -120,9 +120,14 @@ function installExtras() {
     <div class="collapsible-header" onclick="toggleSection('signature-section')">Signature Capture</div>
     <div class="collapsible-content" id="signature-section">
       <input id="signatureSigner" placeholder="Signer name" />
-      <textarea id="signatureData" rows="2" placeholder="Signature text / reference"></textarea>
-      <button class="add-task-btn" id="signatureSaveBtn">Save Signature</button>
-      <small id="signatureStatus" style="display:block;margin-top:0.4rem;color:#333;"></small>
+      <div style="margin:0.5rem 0; border:1px solid #bbb; border-radius:8px; background:#fff;">
+        <canvas id="signatureCanvas" width="600" height="180" style="width:100%; max-width:600px; height:180px; touch-action:none; display:block;"></canvas>
+      </div>
+      <div style="display:flex; gap:0.5rem; flex-wrap:wrap; margin-bottom:0.4rem;">
+        <button class="add-task-btn" id="signatureClearBtn" type="button">Clear</button>
+        <button class="add-task-btn" id="signatureSaveBtn" type="button">Save Signature</button>
+      </div>
+      <small id="signatureStatus" style="display:block;margin-top:0.2rem;color:#333;"></small>
     </div>
   `;
   container.appendChild(signatureBox);
@@ -141,11 +146,69 @@ function installExtras() {
   `;
   container.appendChild(attach);
 
+  const signatureCanvas = document.getElementById('signatureCanvas');
+  const sigCtx = signatureCanvas ? signatureCanvas.getContext('2d') : null;
+  let drawing = false;
+  let drewStroke = false;
+
+  const getPoint = (ev) => {
+    const rect = signatureCanvas.getBoundingClientRect();
+    const touch = ev.touches?.[0] || ev.changedTouches?.[0];
+    const clientX = touch ? touch.clientX : ev.clientX;
+    const clientY = touch ? touch.clientY : ev.clientY;
+    return {
+      x: (clientX - rect.left) * (signatureCanvas.width / rect.width),
+      y: (clientY - rect.top) * (signatureCanvas.height / rect.height)
+    };
+  };
+
+  const startDraw = (ev) => {
+    if (!sigCtx || !signatureCanvas) return;
+    ev.preventDefault();
+    const p = getPoint(ev);
+    drawing = true;
+    sigCtx.lineWidth = 2;
+    sigCtx.lineCap = 'round';
+    sigCtx.strokeStyle = '#111';
+    sigCtx.beginPath();
+    sigCtx.moveTo(p.x, p.y);
+  };
+
+  const moveDraw = (ev) => {
+    if (!drawing || !sigCtx || !signatureCanvas) return;
+    ev.preventDefault();
+    const p = getPoint(ev);
+    sigCtx.lineTo(p.x, p.y);
+    sigCtx.stroke();
+    drewStroke = true;
+  };
+
+  const endDraw = (ev) => {
+    if (!drawing) return;
+    ev.preventDefault();
+    drawing = false;
+  };
+
+  if (signatureCanvas) {
+    signatureCanvas.addEventListener('mousedown', startDraw);
+    signatureCanvas.addEventListener('mousemove', moveDraw);
+    window.addEventListener('mouseup', endDraw);
+    signatureCanvas.addEventListener('touchstart', startDraw, { passive: false });
+    signatureCanvas.addEventListener('touchmove', moveDraw, { passive: false });
+    signatureCanvas.addEventListener('touchend', endDraw, { passive: false });
+  }
+
+  document.getElementById('signatureClearBtn').onclick = () => {
+    if (!sigCtx || !signatureCanvas) return;
+    sigCtx.clearRect(0, 0, signatureCanvas.width, signatureCanvas.height);
+    drewStroke = false;
+  };
+
   document.getElementById("signatureSaveBtn").onclick = async () => {
     const signer = document.getElementById('signatureSigner').value.trim();
-    const signatureData = document.getElementById('signatureData').value.trim();
     const st = document.getElementById('signatureStatus');
-    if (!signer || !signatureData) return alert('Signer and signature are required.');
+    if (!signer || !signatureCanvas || !drewStroke) return alert('Signer and drawn signature are required.');
+    const signatureData = signatureCanvas.toDataURL('image/png');
     try {
       await apiPost('/signature', { tech: ctx.tech, project: ctx.project, signer, signatureData, updatedBy: ctx.tech, role: ctx.role }, true);
       if (st) st.textContent = 'Signature saved';
@@ -329,9 +392,18 @@ async function loadProjectData(tech, project) {
   if (warrantyEl) warrantyEl.textContent = projectData.warrantyFlag ? `Warranty/Contract: ${projectData.warrantyFlag}` : '';
 
   const signer = document.getElementById('signatureSigner');
-  const sigData = document.getElementById('signatureData');
+  const sigCanvas = document.getElementById('signatureCanvas');
+  const sctx = sigCanvas ? sigCanvas.getContext('2d') : null;
   if (signer && projectData.signature?.signer) signer.value = projectData.signature.signer;
-  if (sigData && projectData.signature?.signatureData) sigData.value = projectData.signature.signatureData;
+  if (sctx && sigCanvas) {
+    sctx.clearRect(0, 0, sigCanvas.width, sigCanvas.height);
+    const sig = projectData.signature?.signatureData;
+    if (sig && sig.startsWith('data:image/')) {
+      const img = new Image();
+      img.onload = () => sctx.drawImage(img, 0, 0, sigCanvas.width, sigCanvas.height);
+      img.src = sig;
+    }
+  }
 
   document.getElementById("scope-text").textContent = scopeText;
 
