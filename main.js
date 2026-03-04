@@ -127,27 +127,82 @@ function headerControls() {
     if (techSelect && appState.techFilter && appState.techFilter !== 'all') techSelect.value = appState.techFilter;
   };
 
+  async function dispatchAction(path, body) {
+    const res = await fetch(`${API_BASE}${path}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-m3t-api-key': localStorage.getItem('m3t-api-key') || '',
+        'x-m3t-role': appState.role || 'project_manager',
+        'ngrok-skip-browser-warning': 'true'
+      },
+      body: JSON.stringify({ ...body, role: appState.role, updatedBy: 'PM' })
+    });
+    const p = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(p.error || `HTTP ${res.status}`);
+    return p;
+  }
+
+  async function renderDispatchBoard() {
+    const res = await fetch(`${API_BASE}/dispatch-board`, { headers: { "ngrok-skip-browser-warning": "true" } });
+    const p = await res.json();
+    if (!res.ok) throw new Error('Dispatch load failed');
+    const list = document.getElementById('dispatchBoardList');
+    if (!list) return;
+    list.innerHTML = '';
+    (p.items || []).slice(0, 200).forEach(it => {
+      const li = document.createElement('li');
+      li.style.border = '1px solid #ddd';
+      li.style.borderRadius = '8px';
+      li.style.padding = '0.6rem';
+      li.innerHTML = `
+        <div><strong>${it.project}</strong> · ${it.tech} · ${it.status} · ${it.priority}</div>
+        <div style="font-size:12px;color:#555;">${it.scheduledStart ? new Date(it.scheduledStart).toLocaleString() : 'Unscheduled'}</div>
+        <div style="margin-top:0.4rem; display:flex; gap:0.4rem; flex-wrap:wrap;">
+          <button data-action="earlier">-30m</button>
+          <button data-action="later">+30m</button>
+          <button data-action="eta">Send ETA</button>
+        </div>
+      `;
+
+      li.querySelector('[data-action="earlier"]').onclick = async () => {
+        await dispatchAction('/dispatch/reorder', { tech: it.tech, project: it.project, direction: 'earlier', minutes: 30 });
+        await renderDispatchBoard();
+      };
+      li.querySelector('[data-action="later"]').onclick = async () => {
+        await dispatchAction('/dispatch/reorder', { tech: it.tech, project: it.project, direction: 'later', minutes: 30 });
+        await renderDispatchBoard();
+      };
+      li.querySelector('[data-action="eta"]').onclick = async () => {
+        const start = prompt('ETA start (ISO or blank for now+30m):') || new Date(Date.now() + 30 * 60 * 1000).toISOString();
+        const end = prompt('ETA end (ISO or blank for start+30m):') || new Date(new Date(start).getTime() + 30 * 60 * 1000).toISOString();
+        const msg = prompt('ETA message (optional):') || '';
+        await dispatchAction('/dispatch/eta-notify', { tech: it.tech, project: it.project, etaWindowStart: start, etaWindowEnd: end, message: msg });
+        alert('ETA update saved/logged.');
+        await renderDispatchBoard();
+      };
+
+      list.appendChild(li);
+    });
+  }
+
   const dispatchBtn = document.getElementById('dispatchBoardBtn');
   if (dispatchBtn) {
     dispatchBtn.onclick = async () => {
       try {
-        const res = await fetch(`${API_BASE}/dispatch-board`, { headers: { "ngrok-skip-browser-warning": "true" } });
-        const p = await res.json();
-        if (!res.ok) throw new Error('Dispatch load failed');
-        const list = document.getElementById('dispatchBoardList');
-        if (list) {
-          list.innerHTML = '';
-          (p.items || []).slice(0, 200).forEach(it => {
-            const li = document.createElement('li');
-            li.textContent = `${it.tech} · ${it.project} · ${it.status} · ${it.priority} · ${it.scheduledStart ? new Date(it.scheduledStart).toLocaleString() : 'unscheduled'}`;
-            list.appendChild(li);
-          });
-        }
+        await renderDispatchBoard();
         const ov = document.getElementById('dispatchOverlay');
         if (ov) ov.style.display = 'block';
       } catch (e) {
         alert(`Dispatch board failed: ${e.message}`);
       }
+    };
+  }
+
+  const dispatchRefreshBtn = document.getElementById('dispatchRefreshBtn');
+  if (dispatchRefreshBtn) {
+    dispatchRefreshBtn.onclick = async () => {
+      try { await renderDispatchBoard(); } catch (e) { alert(`Refresh failed: ${e.message}`); }
     };
   }
 
