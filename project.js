@@ -85,8 +85,12 @@ function installExtras() {
   timeBox.querySelectorAll('button[data-time]').forEach(btn => {
     btn.addEventListener('click', async () => {
       const type = btn.getAttribute('data-time');
-      await apiPost('/time-events', { tech: ctx.tech, project: ctx.project, type, user: ctx.tech, source: 'web', role: ctx.role }, true);
-      loadProjectData(ctx.tech, ctx.project);
+      try {
+        await apiPost('/time-events', { tech: ctx.tech, project: ctx.project, type, user: ctx.tech, source: 'web', role: ctx.role }, true);
+        loadProjectData(ctx.tech, ctx.project);
+      } catch (err) {
+        alert(`Time event blocked: ${err.message}`);
+      }
     });
   });
 
