@@ -1,0 +1,127 @@
+{
+  "generatedAt": "2026-03-04T17:16:03.950Z",
+  "tier": "free",
+  "count": 10,
+  "items": [
+    {
+      "id": "sample-001",
+      "title": "IT Managed Services RFP",
+      "source": "Dauphin County",
+      "deadline": "2026-03-20",
+      "score": 63.3,
+      "tier": "strong",
+      "url": "https://example.org/rfp-1",
+      "category": "it_services",
+      "location": "Harrisburg, PA",
+      "stale": false
+    },
+    {
+      "id": "sample-002",
+      "title": "Community Facility Improvement Grant",
+      "source": "PA DCED",
+      "deadline": "2026-04-15",
+      "score": 60,
+      "tier": "strong",
+      "url": "https://example.org/grant-1",
+      "category": "community",
+      "location": "Central PA",
+      "stale": false
+    },
+    {
+      "id": "dced-16-aHR0cHM6Ly",
+      "title": "Community Services Block Grant (CSBG)",
+      "source": "PA DCED",
+      "deadline": null,
+      "score": 54,
+      "tier": "optional",
+      "url": "https://dced.pa.gov/housing-and-development/community-services/",
+      "category": "grant",
+      "location": "Pennsylvania",
+      "stale": false
+    },
+    {
+      "id": "dced-14-aHR0cHM6Ly",
+      "title": "Community Development Block Grant (CDBG)",
+      "source": "PA DCED",
+      "deadline": null,
+      "score": 47.3,
+      "tier": "optional",
+      "url": "https://dced.pa.gov/programs/community-development-block-grant-cdbg/",
+      "category": "grant",
+      "location": "Pennsylvania",
+      "stale": false
+    },
+    {
+      "id": "dauphin-12-aHR0cHM6Ly",
+      "title": "Feb 21 UPDATE: RFP - Institutional Healthcare Services",
+      "source": "Dauphin County",
+      "deadline": null,
+      "score": 47.3,
+      "tier": "optional",
+      "url": "https://www.dauphincounty.gov/news/dc-news/2025/02/21/update--rfp----institutional-healthcare-services",
+      "category": "procurement",
+      "location": "Dauphin County, PA",
+      "stale": false
+    },
+    {
+      "id": "dced-0-aHR0cHM6Ly",
+      "title": "Keystone Opportunity Zones",
+      "source": "PA DCED",
+      "deadline": null,
+      "score": 40.5,
+      "tier": "optional",
+      "url": "https://dced.pa.gov/business-assistance/keystone-opportunity-zones/",
+      "category": "grant",
+      "location": "Pennsylvania",
+      "stale": false
+    },
+    {
+      "id": "dced-1-aHR0cHM6Ly",
+      "title": "Business Opportunities Fund",
+      "source": "PA DCED",
+      "deadline": null,
+      "score": 40.5,
+      "tier": "optional",
+      "url": "https://dced.pa.gov/business-assistance/private-financing/business-opportunities-fund/",
+      "category": "grant",
+      "location": "Pennsylvania",
+      "stale": false
+    },
+    {
+      "id": "dced-2-aHR0cHM6Ly",
+      "title": "Programs &#038; Funding",
+      "source": "PA DCED",
+      "deadline": null,
+      "score": 40.5,
+      "tier": "optional",
+      "url": "https://dced.pa.gov/programs-funding/",
+      "category": "grant",
+      "location": "Pennsylvania",
+      "stale": false
+    },
+    {
+      "id": "dced-3-aHR0cHM6Ly",
+      "title": "Commonwealth Financing Authority (CFA)",
+      "source": "PA DCED",
+      "deadline": null,
+      "score": 40.5,
+      "tier": "optional",
+      "url": "https://dced.pa.gov/programs-funding/commonwealth-financing-authority-cfa/",
+      "category": "grant",
+      "location": "Pennsylvania",
+      "stale": false
+    },
+    {
+      "id": "dced-4-aHR0cHM6Ly",
+      "title": "Compliance Resources",
+      "source": "PA DCED",
+      "deadline": null,
+      "score": 40.5,
+      "tier": "optional",
+      "url": "https://dced.pa.gov/programs-funding/compliance-resources/",
+      "category": "grant",
+      "location": "Pennsylvania",
+      "stale": false
+    }
+  ]
+}
