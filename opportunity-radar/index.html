@@ -13,13 +13,15 @@
     th,td{border:1px solid #2a2f3a;padding:8px;font-size:14px}
     th{background:#202534}
     a{color:#8cc8ff}
+    .footerLinks{margin-top:14px;font-size:13px;color:#b8c1d1}
+    .footerLinks a{margin-right:12px}
   </style>
 </head>
 <body>
   <h1>CentralPA Opportunity Radar</h1>
   <div class="meta">
     <span class="pill">Items: 58</span>
-    <span class="pill">Last Updated: 3/4/2026, 1:54:04 PM</span>
+    <span class="pill">Last Updated: 3/4/2026, 1:56:01 PM</span>
   </div>
   <p>Top ranked opportunities (MVP feed)</p>
   <div style="margin:0 0 14px;padding:10px;border:1px solid #2a2f3a;background:#151924;border-radius:8px;max-width:700px;">
@@ -42,6 +44,15 @@
       <option value="priority">Priority</option>
       <option value="strong">Strong</option>
       <option value="optional">Optional</option>
+    </select>
+    <select id="sourceFilter" style="padding:8px;border-radius:6px;border:1px solid #3a4254;background:#0f1320;color:#e8ebf0;">
+      <option value="">All sources</option>
+    </select>
+    <select id="deadlineFilter" style="padding:8px;border-radius:6px;border:1px solid #3a4254;background:#0f1320;color:#e8ebf0;">
+      <option value="">Any deadline</option>
+      <option value="7">Due in 7 days</option>
+      <option value="14">Due in 14 days</option>
+      <option value="30">Due in 30 days</option>
     </select>
     <span id="visibleCount" class="pill">Visible: 58</span>
   </div>
@@ -571,33 +582,63 @@
     <td><a href="https://www.grants.gov/search-grants#gg-timeout-modal" target="_blank" rel="noreferrer">Open</a></td>
   </tr></tbody>
   </table>
+  <div id="runSummary" class="meta" style="margin-top:10px;"></div>
+  <div class="footerLinks">
+    <a href="./terms.html">Terms</a>
+    <a href="./privacy.html">Privacy</a>
+    <a href="./sources.html">Sources</a>
+  </div>
   <script>
     const q = document.getElementById('q');
     const tierFilter = document.getElementById('tierFilter');
+    const sourceFilter = document.getElementById('sourceFilter');
+    const deadlineFilter = document.getElementById('deadlineFilter');
     const visibleCount = document.getElementById('visibleCount');
+    const runSummary = document.getElementById('runSummary');
     const rows = Array.from(document.querySelectorAll('#rows tr'));
+
+    const sources = [...new Set(rows.map(r => r.dataset.source || '').filter(Boolean))].sort();
+    if (sourceFilter) {
+      sourceFilter.innerHTML = '<option value="">All sources</option>' + sources.map(s => '<option value="' + s + '">' + s + '</option>').join('');
+    }
+
+    function parseDeadlineDays(r) {
+      const text = r.children?.[3]?.innerText || '';
+      const m = text.match(/(([-d]+)d)/);
+      return m ? Number(m[1]) : 999;
+    }
 
     function applyFilters() {
       const query = (q?.value || '').toLowerCase().trim();
       const tier = (tierFilter?.value || '').toLowerCase();
+      const sourceSel = (sourceFilter?.value || '').toLowerCase();
+      const dwin = Number(deadlineFilter?.value || 0);
       let visible = 0;
 
       rows.forEach(r => {
         const title = r.dataset.title || '';
         const source = r.dataset.source || '';
         const rtier = r.dataset.tier || '';
+        const d = parseDeadlineDays(r);
+
         const passQ = !query || title.includes(query) || source.includes(query);
         const passTier = !tier || rtier === tier;
-        const show = passQ && passTier;
+        const passSource = !sourceSel || source === sourceSel;
+        const passDeadline = !dwin || (Number.isFinite(d) && d >= 0 && d <= dwin);
+
+        const show = passQ && passTier && passSource && passDeadline;
         r.style.display = show ? '' : 'none';
         if (show) visible += 1;
       });
 
       if (visibleCount) visibleCount.textContent = 'Visible: ' + visible;
+      if (runSummary) runSummary.textContent = 'Filtered view • query=' + (query || 'none') + ' • tier=' + (tier || 'all') + ' • source=' + (sourceSel || 'all') + (dwin ? (' • deadline<=' + dwin + 'd') : '');
     }
 
     q?.addEventListener('input', applyFilters);
     tierFilter?.addEventListener('change', applyFilters);
+    sourceFilter?.addEventListener('change', applyFilters);
+    deadlineFilter?.addEventListener('change', applyFilters);
 
     const form = document.getElementById('subscribeForm');
     const status = document.getElementById('subStatus');
