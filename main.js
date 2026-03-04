@@ -344,6 +344,7 @@ function headerControls() {
             <button data-act="open">Open Project</button>
             <button data-act="note">Add Note</button>
             <button data-act="viewNotes">View Notes</button>
+            <button data-act="exportNotes">Export Notes CSV</button>
             <button data-act="inv">Mark Invoiced</button>
             <button data-act="paid">Mark Paid</button>
             <button data-act="reset">Reset</button>
@@ -401,6 +402,9 @@ function headerControls() {
           } catch (e) {
             alert(`Load notes failed: ${e.message}`);
           }
+        };
+        li.querySelector('[data-act="exportNotes"]').onclick = () => {
+          window.open(`${API_BASE}/project-finance-notes.csv?tech=${encodeURIComponent(it.tech)}&project=${encodeURIComponent(it.project)}`, '_blank');
         };
         li.querySelector('[data-act="inv"]').onclick = async () => { try { await setStatus('invoiced'); await renderFinanceBoard(); } catch (e) { alert(e.message); } };
         li.querySelector('[data-act="paid"]').onclick = async () => { try { await setStatus('paid'); await renderFinanceBoard(); } catch (e) { alert(e.message); } };
