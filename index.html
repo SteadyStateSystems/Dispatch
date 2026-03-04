@@ -80,6 +80,19 @@
             <option value="monthly">Monthly</option>
           </select>
         </label><br><br>
+        <label>Budget Amount ($):<br>
+          <input type="number" name="budgetAmount" step="0.01" min="0" placeholder="0.00">
+        </label><br><br>
+        <label>Actual Cost ($):<br>
+          <input type="number" name="actualCost" step="0.01" min="0" placeholder="0.00">
+        </label><br><br>
+        <label>Invoice Status:
+          <select name="invoiceStatus">
+            <option value="not_invoiced">Not Invoiced</option>
+            <option value="invoiced">Invoiced</option>
+            <option value="paid">Paid</option>
+          </select>
+        </label><br><br>
         <label>Scheduled Start:<br>
           <input type="datetime-local" name="scheduledStart">
         </label><br><br>
@@ -164,8 +177,8 @@
     </div>
   </div>
 
-  <script src="main.js?v=20260304-0910"></script>
-  <script src="pwa.js?v=20260304-0910"></script>
+  <script src="main.js?v=20260304-0918"></script>
+  <script src="pwa.js?v=20260304-0918"></script>
 
   <script>
     const FORM_API_BASE = window.M3T_API_BASE || 'https://adjusted-bluejay-gratefully.ngrok-free.app';
@@ -348,6 +361,9 @@
       const etaWindowStart = form.etaWindowStart.value ? new Date(form.etaWindowStart.value).toISOString() : null;
       const etaWindowEnd = form.etaWindowEnd.value ? new Date(form.etaWindowEnd.value).toISOString() : null;
       const recurrence = form.recurrence.value || null;
+      const budgetAmount = Number(form.budgetAmount.value || 0);
+      const actualCost = Number(form.actualCost.value || 0);
+      const invoiceStatus = form.invoiceStatus.value || 'not_invoiced';
       const scheduledStart = form.scheduledStart.value ? new Date(form.scheduledStart.value).toISOString() : null;
       const scheduledEnd = form.scheduledEnd.value ? new Date(form.scheduledEnd.value).toISOString() : null;
       const priority = form.priority.value || 'normal';
@@ -364,6 +380,7 @@
         siteContactName, siteContactPhone, siteContactEmail,
         preferredContactMethod, accessInstructions, warrantyFlag,
         etaWindowStart, etaWindowEnd, recurrence,
+        budgetAmount, actualCost, invoiceStatus,
         scheduledStart, scheduledEnd, priority, status,
         assignedTech: technician,
         scope, templateId, tasks, materials, updatedBy: 'Admin'

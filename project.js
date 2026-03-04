@@ -164,6 +164,26 @@ function installExtras() {
   `;
   container.appendChild(closeout);
 
+  const financeBox = document.createElement("div");
+  financeBox.className = "collapsible-section";
+  financeBox.innerHTML = `
+    <div class="collapsible-header" onclick="toggleSection('finance-section')">Finance</div>
+    <div class="collapsible-content" id="finance-section">
+      <label>Budget ($)<br><input id="financeBudget" type="number" step="0.01" min="0" /></label><br/>
+      <label>Actual Cost ($)<br><input id="financeCost" type="number" step="0.01" min="0" /></label><br/>
+      <label>Invoice Status
+        <select id="financeInvoiceStatus">
+          <option value="not_invoiced">Not Invoiced</option>
+          <option value="invoiced">Invoiced</option>
+          <option value="paid">Paid</option>
+        </select>
+      </label><br/>
+      <button class="add-task-btn" id="financeSaveBtn">Save Finance</button>
+      <small id="financeStatus" style="display:block;margin-top:0.4rem;color:#333;"></small>
+    </div>
+  `;
+  container.appendChild(financeBox);
+
   const signatureBox = document.createElement("div");
   signatureBox.className = "collapsible-section";
   signatureBox.innerHTML = `
@@ -265,6 +285,23 @@ function installExtras() {
       loadProjectData(ctx.tech, ctx.project);
     } catch (err) {
       if (st) st.textContent = `Signature failed: ${err.message}`;
+    }
+  };
+
+  document.getElementById('financeSaveBtn').onclick = async () => {
+    if (!(ctx.role === 'project_manager' || isAdminRole(ctx.role))) {
+      return alert('Project Manager/Admin role required.');
+    }
+    const budgetAmount = Number(document.getElementById('financeBudget')?.value || 0);
+    const actualCost = Number(document.getElementById('financeCost')?.value || 0);
+    const invoiceStatus = document.getElementById('financeInvoiceStatus')?.value || 'not_invoiced';
+    const st = document.getElementById('financeStatus');
+    try {
+      await apiPost('/project-finance', { tech: ctx.tech, project: ctx.project, budgetAmount, actualCost, invoiceStatus, updatedBy: 'PM', role: ctx.role }, true);
+      if (st) st.textContent = 'Finance saved';
+      loadProjectData(ctx.tech, ctx.project);
+    } catch (err) {
+      if (st) st.textContent = `Finance save failed: ${err.message}`;
     }
   };
 
@@ -471,6 +508,13 @@ async function loadProjectData(tech, project) {
       img.src = sig;
     }
   }
+
+  const financeBudget = document.getElementById('financeBudget');
+  const financeCost = document.getElementById('financeCost');
+  const financeInvoiceStatus = document.getElementById('financeInvoiceStatus');
+  if (financeBudget) financeBudget.value = Number(projectData.budgetAmount || 0).toFixed(2);
+  if (financeCost) financeCost.value = Number(projectData.actualCost || 0).toFixed(2);
+  if (financeInvoiceStatus) financeInvoiceStatus.value = projectData.invoiceStatus || 'not_invoiced';
 
   document.getElementById("scope-text").textContent = scopeText;
 
