@@ -321,7 +321,7 @@ function headerControls() {
         if (overdue) li.style.borderColor = '#c62828';
         li.innerHTML = `
           <div><strong>${it.tech}</strong> · ${it.project}</div>
-          <div style="font-size:12px;color:${overdue ? '#b71c1c' : '#555'};">Status: ${it.invoiceStatus}${it.invoiceAgeDays != null ? ` · Age ${it.invoiceAgeDays}d` : ''} · Budget $${(it.budgetAmount||0).toFixed(2)} · Cost $${(it.actualCost||0).toFixed(2)} · Margin $${(it.margin||0).toFixed(2)}</div>
+          <div style="font-size:12px;color:${overdue ? '#b71c1c' : '#555'};">Status: ${it.invoiceStatus}${it.invoiceAgeDays != null ? ` · Age ${it.invoiceAgeDays}d` : ''}${it.invoicePaidAt ? ` · Paid ${new Date(it.invoicePaidAt).toLocaleDateString()}` : ''} · Budget $${(it.budgetAmount||0).toFixed(2)} · Cost $${(it.actualCost||0).toFixed(2)} · Margin $${(it.margin||0).toFixed(2)}</div>
           <div style="margin-top:0.35rem; display:flex; gap:0.35rem; flex-wrap:wrap;">
             <button data-act="inv">Mark Invoiced</button>
             <button data-act="paid">Mark Paid</button>
@@ -556,7 +556,7 @@ async function loadPMSummary() {
     if (!pmRes.ok) throw new Error('summary failed');
     const hours = p.hoursByTech || {};
     const hourText = Object.entries(hours).slice(0, 3).map(([k,v]) => `${k}:${v}h`).join(' · ');
-    const finText = finRes.ok ? ` · Margin: $${(f.estimatedMargin || 0).toFixed(2)} · Invoices P/I/N: ${f.invoiceCounts?.paid || 0}/${f.invoiceCounts?.invoiced || 0}/${f.invoiceCounts?.notInvoiced || 0} · Overdue Inv: ${f.invoiceCounts?.overdueInvoiced || 0}` : '';
+    const finText = finRes.ok ? ` · Margin: $${(f.estimatedMargin || 0).toFixed(2)} · Invoices P/I/N: ${f.invoiceCounts?.paid || 0}/${f.invoiceCounts?.invoiced || 0}/${f.invoiceCounts?.notInvoiced || 0} · Overdue Inv: ${f.invoiceCounts?.overdueInvoiced || 0} · Paid 30d: ${f.invoiceCounts?.paidLast30d || 0}` : '';
     box.textContent = `PM Summary — Total: ${p.totalProjects || 0} · Overdue: ${p.overdue || 0} · At Risk (48h): ${p.atRisk || 0}${hourText ? ` · Hours: ${hourText}` : ''}${finText}`;
   } catch {
     box.textContent = 'PM Summary unavailable';
