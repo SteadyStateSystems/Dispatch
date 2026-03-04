@@ -294,12 +294,14 @@ function headerControls() {
   async function renderFinanceBoard() {
     const statusFilter = document.getElementById('financeStatusFilter')?.value || '';
     const overdueOnly = document.getElementById('financeOverdueOnly')?.checked === true;
-    const [res, alertsRes] = await Promise.all([
+    const [res, alertsRes, risksRes] = await Promise.all([
       fetch(`${API_BASE}/finance-projects`, { headers: { "ngrok-skip-browser-warning": "true" } }),
-      fetch(`${API_BASE}/finance-alerts`, { headers: { "ngrok-skip-browser-warning": "true" } })
+      fetch(`${API_BASE}/finance-alerts`, { headers: { "ngrok-skip-browser-warning": "true" } }),
+      fetch(`${API_BASE}/finance-risks`, { headers: { "ngrok-skip-browser-warning": "true" } })
     ]);
     const p = await res.json();
     const a = await alertsRes.json().catch(() => ({ alerts: [] }));
+    const r = await risksRes.json().catch(() => ({ items: [] }));
     if (!res.ok) throw new Error('Finance board failed');
     const items = (p.items || []).filter(x => {
       if (statusFilter && x.invoiceStatus !== statusFilter) return false;
@@ -363,6 +365,12 @@ function headerControls() {
     if (alertsLine) {
       const alerts = Array.isArray(a.alerts) ? a.alerts : [];
       alertsLine.textContent = alerts.length ? `⚠ Finance alerts: ${alerts.length} (${alerts.slice(0,3).map(x => `${x.tech}/${x.project}`).join(', ')}${alerts.length > 3 ? '…' : ''})` : '';
+    }
+
+    const risksLine = document.getElementById('financeRisksLine');
+    if (risksLine) {
+      const risks = Array.isArray(r.items) ? r.items : [];
+      risksLine.textContent = risks.length ? `📊 Top risk: ${risks[0].tech}/${risks[0].project} (score ${Math.round(risks[0].riskScore || 0)})` : '';
     }
   }
 
