@@ -297,17 +297,26 @@ function headerControls() {
     const [res, alertsRes, risksRes] = await Promise.all([
       fetch(`${API_BASE}/finance-projects`, { headers: { "ngrok-skip-browser-warning": "true" } }),
       fetch(`${API_BASE}/finance-alerts`, { headers: { "ngrok-skip-browser-warning": "true" } }),
-      fetch(`${API_BASE}/finance-risks`, { headers: { "ngrok-skip-browser-warning": "true" } })
+      fetch(`${API_BASE}/finance-risks?all=true`, { headers: { "ngrok-skip-browser-warning": "true" } })
     ]);
     const p = await res.json();
     const a = await alertsRes.json().catch(() => ({ alerts: [] }));
     const r = await risksRes.json().catch(() => ({ items: [] }));
     if (!res.ok) throw new Error('Finance board failed');
+    const riskMap = new Map((r.items || []).map(x => [`${x.tech}::${x.project}`, Number(x.riskScore || 0)]));
+    const sortMode = document.getElementById('financeSortMode')?.value || 'risk_desc';
     const items = (p.items || []).filter(x => {
       if (statusFilter && x.invoiceStatus !== statusFilter) return false;
       if (overdueOnly && !(x.invoiceStatus === 'invoiced' && Number(x.invoiceAgeDays || 0) >= 14)) return false;
       return true;
+    }).map(x => ({ ...x, riskScore: riskMap.get(`${x.tech}::${x.project}`) || 0 }));
+
+    items.sort((a, b) => {
+      if (sortMode === 'margin_asc') return Number(a.margin || 0) - Number(b.margin || 0);
+      if (sortMode === 'margin_desc') return Number(b.margin || 0) - Number(a.margin || 0);
+      return Number(b.riskScore || 0) - Number(a.riskScore || 0);
     });
+
     financeBoardCache = items;
 
     const list = document.getElementById('financeBoardList');
@@ -323,8 +332,9 @@ function headerControls() {
         if (overdue) li.style.borderColor = '#c62828';
         li.innerHTML = `
           <div><strong>${it.tech}</strong> · ${it.project}</div>
-          <div style="font-size:12px;color:${overdue ? '#b71c1c' : '#555'};">Status: ${it.invoiceStatus}${it.invoiceAgeDays != null ? ` · Age ${it.invoiceAgeDays}d` : ''}${it.invoicePaidAt ? ` · Paid ${new Date(it.invoicePaidAt).toLocaleDateString()}` : ''} · Budget $${(it.budgetAmount||0).toFixed(2)} · Cost $${(it.actualCost||0).toFixed(2)} · Margin $${(it.margin||0).toFixed(2)}</div>
+          <div style="font-size:12px;color:${overdue ? '#b71c1c' : '#555'};">Status: ${it.invoiceStatus}${it.invoiceAgeDays != null ? ` · Age ${it.invoiceAgeDays}d` : ''}${it.invoicePaidAt ? ` · Paid ${new Date(it.invoicePaidAt).toLocaleDateString()}` : ''} · Budget $${(it.budgetAmount||0).toFixed(2)} · Cost $${(it.actualCost||0).toFixed(2)} · Margin $${(it.margin||0).toFixed(2)} · Risk ${Math.round(it.riskScore || 0)}</div>
           <div style="margin-top:0.35rem; display:flex; gap:0.35rem; flex-wrap:wrap;">
+            <button data-act="open">Open Project</button>
             <button data-act="inv">Mark Invoiced</button>
             <button data-act="paid">Mark Paid</button>
             <button data-act="reset">Reset</button>
@@ -346,6 +356,10 @@ function headerControls() {
           if (!r.ok) throw new Error(body.error || `HTTP ${r.status}`);
         };
 
+        li.querySelector('[data-act="open"]').onclick = () => {
+          const url = `project.html?tech=${encodeURIComponent(it.tech)}&project=${encodeURIComponent(it.project)}&role=${encodeURIComponent(appState.role)}`;
+          window.location.href = url;
+        };
         li.querySelector('[data-act="inv"]').onclick = async () => { try { await setStatus('invoiced'); await renderFinanceBoard(); } catch (e) { alert(e.message); } };
         li.querySelector('[data-act="paid"]').onclick = async () => { try { await setStatus('paid'); await renderFinanceBoard(); } catch (e) { alert(e.message); } };
         li.querySelector('[data-act="reset"]').onclick = async () => { try { await setStatus('not_invoiced'); await renderFinanceBoard(); } catch (e) { alert(e.message); } };
@@ -405,6 +419,13 @@ function headerControls() {
   if (financeOverdueOnly) {
     financeOverdueOnly.onchange = async () => {
       try { await renderFinanceBoard(); } catch (e) { alert(`Finance filter failed: ${e.message}`); }
+    };
+  }
+
+  const financeSortMode = document.getElementById('financeSortMode');
+  if (financeSortMode) {
+    financeSortMode.onchange = async () => {
+      try { await renderFinanceBoard(); } catch (e) { alert(`Finance sort failed: ${e.message}`); }
     };
   }
 
