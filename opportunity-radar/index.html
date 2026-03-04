@@ -21,7 +21,13 @@
   <h1>CentralPA Opportunity Radar</h1>
   <div class="meta">
     <span class="pill">Items: 58</span>
-    <span class="pill">Last Updated: 3/4/2026, 1:56:01 PM</span>
+    <span class="pill">Last Updated: 3/4/2026, 1:58:40 PM</span>
+  </div>
+  <div id="kpis" style="display:flex;gap:8px;flex-wrap:wrap;margin:0 0 12px;">
+    <span id="kpiNewToday" class="pill">New today: 0</span>
+    <span id="kpiDueSoon" class="pill">Due ≤7d: 0</span>
+    <span id="kpiPriority" class="pill">Priority: 0</span>
+    <span id="kpiSourceHealth" class="pill">Sources active: 0</span>
   </div>
   <p>Top ranked opportunities (MVP feed)</p>
   <div style="margin:0 0 14px;padding:10px;border:1px solid #2a2f3a;background:#151924;border-radius:8px;max-width:700px;">
@@ -595,6 +601,10 @@
     const deadlineFilter = document.getElementById('deadlineFilter');
     const visibleCount = document.getElementById('visibleCount');
     const runSummary = document.getElementById('runSummary');
+    const kpiNewToday = document.getElementById('kpiNewToday');
+    const kpiDueSoon = document.getElementById('kpiDueSoon');
+    const kpiPriority = document.getElementById('kpiPriority');
+    const kpiSourceHealth = document.getElementById('kpiSourceHealth');
     const rows = Array.from(document.querySelectorAll('#rows tr'));
 
     const sources = [...new Set(rows.map(r => r.dataset.source || '').filter(Boolean))].sort();
@@ -608,12 +618,26 @@
       return m ? Number(m[1]) : 999;
     }
 
+    function rowDateIsToday(r) {
+      const text = r.children?.[3]?.innerText || '';
+      const today = new Date();
+      const yyyy = today.getFullYear();
+      const mm = String(today.getMonth() + 1).padStart(2, '0');
+      const dd = String(today.getDate()).padStart(2, '0');
+      return text.includes(yyyy + '-' + mm + '-' + dd);
+    }
+
     function applyFilters() {
       const query = (q?.value || '').toLowerCase().trim();
       const tier = (tierFilter?.value || '').toLowerCase();
       const sourceSel = (sourceFilter?.value || '').toLowerCase();
       const dwin = Number(deadlineFilter?.value || 0);
       let visible = 0;
+
+      let dueSoon = 0;
+      let priority = 0;
+      let newToday = 0;
+      const visibleSources = new Set();
 
       rows.forEach(r => {
         const title = r.dataset.title || '';
@@ -628,10 +652,20 @@
 
         const show = passQ && passTier && passSource && passDeadline;
         r.style.display = show ? '' : 'none';
-        if (show) visible += 1;
+        if (show) {
+          visible += 1;
+          if (Number.isFinite(d) && d >= 0 && d <= 7) dueSoon += 1;
+          if (rtier === 'priority') priority += 1;
+          if (rowDateIsToday(r)) newToday += 1;
+          if (source) visibleSources.add(source);
+        }
       });
 
       if (visibleCount) visibleCount.textContent = 'Visible: ' + visible;
+      if (kpiNewToday) kpiNewToday.textContent = 'New today: ' + newToday;
+      if (kpiDueSoon) kpiDueSoon.textContent = 'Due ≤7d: ' + dueSoon;
+      if (kpiPriority) kpiPriority.textContent = 'Priority: ' + priority;
+      if (kpiSourceHealth) kpiSourceHealth.textContent = 'Sources active: ' + visibleSources.size;
       if (runSummary) runSummary.textContent = 'Filtered view • query=' + (query || 'none') + ' • tier=' + (tier || 'all') + ' • source=' + (sourceSel || 'all') + (dwin ? (' • deadline<=' + dwin + 'd') : '');
     }
 
