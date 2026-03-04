@@ -343,6 +343,7 @@ function headerControls() {
           <div style="margin-top:0.35rem; display:flex; gap:0.35rem; flex-wrap:wrap;">
             <button data-act="open">Open Project</button>
             <button data-act="note">Add Note</button>
+            <button data-act="viewNotes">View Notes</button>
             <button data-act="inv">Mark Invoiced</button>
             <button data-act="paid">Mark Paid</button>
             <button data-act="reset">Reset</button>
@@ -385,8 +386,20 @@ function headerControls() {
             const body = await r.json().catch(() => ({}));
             if (!r.ok) throw new Error(body.error || `HTTP ${r.status}`);
             alert('Finance note saved.');
+            await renderFinanceBoard();
           } catch (e) {
             alert(`Finance note failed: ${e.message}`);
+          }
+        };
+        li.querySelector('[data-act="viewNotes"]').onclick = async () => {
+          try {
+            const r = await fetch(`${API_BASE}/project-finance-notes?tech=${encodeURIComponent(it.tech)}&project=${encodeURIComponent(it.project)}`, { headers: { 'ngrok-skip-browser-warning': 'true' } });
+            const body = await r.json().catch(() => ({}));
+            if (!r.ok) throw new Error(body.error || `HTTP ${r.status}`);
+            const lines = (body.notes || []).slice(0, 10).map(n => `• ${new Date(n.createdAt).toLocaleString()} ${n.user || 'PM'}: ${n.text}`);
+            alert(lines.length ? lines.join('\n') : 'No finance notes yet.');
+          } catch (e) {
+            alert(`Load notes failed: ${e.message}`);
           }
         };
         li.querySelector('[data-act="inv"]').onclick = async () => { try { await setStatus('invoiced'); await renderFinanceBoard(); } catch (e) { alert(e.message); } };
