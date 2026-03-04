@@ -11,6 +11,11 @@ const appState = {
   currentTech: localStorage.getItem("m3t-current-tech") || ""
 };
 
+const dispatchViewState = {
+  tech: '',
+  status: ''
+};
+
 function isAdminRole(role) {
   return role === "admin" || role === "system_admin";
 }
@@ -148,9 +153,31 @@ function headerControls() {
     const p = await res.json();
     if (!res.ok) throw new Error('Dispatch load failed');
     const list = document.getElementById('dispatchBoardList');
+    const techSel = document.getElementById('dispatchTechFilter');
+    const statusSel = document.getElementById('dispatchStatusFilter');
     if (!list) return;
+
+    const allItems = (p.items || []).slice(0, 300);
+    if (techSel) {
+      const current = techSel.value || dispatchViewState.tech || '';
+      const techs = [...new Set(allItems.map(x => x.tech))].sort();
+      techSel.innerHTML = '<option value="">All Techs</option>' + techs.map(t => `<option value="${t}">${t}</option>`).join('');
+      techSel.value = current;
+      dispatchViewState.tech = current;
+    }
+
+    if (statusSel) {
+      dispatchViewState.status = statusSel.value || dispatchViewState.status || '';
+    }
+
+    const items = allItems.filter(it => {
+      if (dispatchViewState.tech && it.tech !== dispatchViewState.tech) return false;
+      if (dispatchViewState.status && (it.status || 'scheduled') !== dispatchViewState.status) return false;
+      return true;
+    });
+
     list.innerHTML = '';
-    (p.items || []).slice(0, 200).forEach(it => {
+    items.forEach(it => {
       const li = document.createElement('li');
       li.style.border = '1px solid #ddd';
       li.style.borderRadius = '8px';
@@ -162,12 +189,13 @@ function headerControls() {
           <button data-action="top">Move to Top</button>
           <button data-action="earlier">-30m</button>
           <button data-action="later">+30m</button>
-          <button data-action="eta">Send ETA</button>
+          <button data-action="eta30">ETA 30-60m</button>
+          <button data-action="eta60">ETA 60-90m</button>
         </div>
       `;
 
       li.querySelector('[data-action="top"]').onclick = async () => {
-        const all = (p.items || []).filter(x => x.tech === it.tech).map(x => x.project);
+        const all = allItems.filter(x => x.tech === it.tech).map(x => x.project);
         const ordered = [it.project, ...all.filter(n => n !== it.project)];
         await dispatchAction('/dispatch/order', { tech: it.tech, orderedProjects: ordered });
         await renderDispatchBoard();
@@ -180,15 +208,18 @@ function headerControls() {
         await dispatchAction('/dispatch/reorder', { tech: it.tech, project: it.project, direction: 'later', minutes: 30 });
         await renderDispatchBoard();
       };
-      li.querySelector('[data-action="eta"]').onclick = async () => {
+      const sendEtaPreset = async (startMin, endMin) => {
         const now = Date.now();
-        const start = new Date(now + 30 * 60 * 1000).toISOString();
-        const end = new Date(now + 60 * 60 * 1000).toISOString();
+        const start = new Date(now + startMin * 60 * 1000).toISOString();
+        const end = new Date(now + endMin * 60 * 1000).toISOString();
         const msg = `ETA update: expected between ${new Date(start).toLocaleTimeString()} and ${new Date(end).toLocaleTimeString()}.`;
         await dispatchAction('/dispatch/eta-notify', { tech: it.tech, project: it.project, etaWindowStart: start, etaWindowEnd: end, message: msg });
-        alert('ETA update saved/logged (default 30-60 minute window).');
+        alert(`ETA update saved/logged (${startMin}-${endMin} minute window).`);
         await renderDispatchBoard();
       };
+
+      li.querySelector('[data-action="eta30"]').onclick = async () => sendEtaPreset(30, 60);
+      li.querySelector('[data-action="eta60"]').onclick = async () => sendEtaPreset(60, 90);
 
       list.appendChild(li);
     });
@@ -204,6 +235,22 @@ function headerControls() {
       } catch (e) {
         alert(`Dispatch board failed: ${e.message}`);
       }
+    };
+  }
+
+  const dispatchTechFilter = document.getElementById('dispatchTechFilter');
+  if (dispatchTechFilter) {
+    dispatchTechFilter.onchange = async () => {
+      dispatchViewState.tech = dispatchTechFilter.value || '';
+      try { await renderDispatchBoard(); } catch (e) { alert(`Filter failed: ${e.message}`); }
+    };
+  }
+
+  const dispatchStatusFilter = document.getElementById('dispatchStatusFilter');
+  if (dispatchStatusFilter) {
+    dispatchStatusFilter.onchange = async () => {
+      dispatchViewState.status = dispatchStatusFilter.value || '';
+      try { await renderDispatchBoard(); } catch (e) { alert(`Filter failed: ${e.message}`); }
     };
   }
 

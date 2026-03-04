@@ -123,7 +123,17 @@
   <div id="dispatchOverlay" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:#f5f5f5; z-index:9998; overflow:auto; padding:2rem;">
     <div style="max-width:900px; margin:auto; background:white; padding:2rem; border-radius:1rem; box-shadow:0 0 10px rgba(0,0,0,0.2)">
       <h2>Dispatch Board</h2>
-      <p style="margin-top:0;color:#555;">Quick actions: move earlier/later and send ETA note.</p>
+      <p style="margin-top:0;color:#555;">Quick actions: move earlier/later, priority bump, ETA presets, and recurrence trigger.</p>
+      <div style="display:flex;gap:0.5rem;flex-wrap:wrap;margin:0.5rem 0 0.8rem;">
+        <select id="dispatchTechFilter"><option value="">All Techs</option></select>
+        <select id="dispatchStatusFilter">
+          <option value="">All Statuses</option>
+          <option value="scheduled">scheduled</option>
+          <option value="in_progress">in_progress</option>
+          <option value="delayed">delayed</option>
+          <option value="done">done</option>
+        </select>
+      </div>
       <ul id="dispatchBoardList" style="display:flex;flex-direction:column;gap:0.5rem;padding-left:1rem;"></ul>
       <button type="button" id="dispatchRefreshBtn">Refresh Board</button>
       <button type="button" id="dispatchRunRecurrenceBtn">Run Recurring Scheduler</button>
@@ -153,8 +163,8 @@
     </div>
   </div>
 
-  <script src="main.js?v=20260304-0750"></script>
-  <script src="pwa.js?v=20260304-0750"></script>
+  <script src="main.js?v=20260304-0801"></script>
+  <script src="pwa.js?v=20260304-0801"></script>
 
   <script>
     const FORM_API_BASE = window.M3T_API_BASE || 'https://adjusted-bluejay-gratefully.ngrok-free.app';
