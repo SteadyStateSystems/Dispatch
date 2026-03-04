@@ -34,7 +34,9 @@ function installExtras() {
       <option value="project_manager">Project Manager</option>
       <option value="system_admin">System Admin</option>
     </select>
+    <button id="projectLockBtn">Lock/Unlock</button>
     <button id="undoBtn">Undo</button>
+    <span id="projectLockBadge" style="font-weight:700;"></span>
     <span id="offlineBadge"></span>
   `;
   container.prepend(roleBar);
@@ -50,6 +52,17 @@ function installExtras() {
   document.getElementById("undoBtn").onclick = async () => {
     if (!isAdminRole(ctx.role)) return alert("Admin role required.");
     await apiPost("/undo", { updatedBy: "Admin", role: ctx.role }, true);
+    loadProjectData(ctx.tech, ctx.project);
+  };
+
+  document.getElementById('projectLockBtn').onclick = async () => {
+    if (!(ctx.role === 'project_manager' || isAdminRole(ctx.role))) {
+      return alert('Project Manager/Admin role required.');
+    }
+    const currentlyLocked = document.getElementById('projectLockBadge')?.dataset.locked === 'true';
+    const nextLocked = !currentlyLocked;
+    const reason = nextLocked ? (prompt('Lock reason (optional):') || '') : '';
+    await apiPost('/project-lock', { tech: ctx.tech, project: ctx.project, locked: nextLocked, reason, updatedBy: 'PM', role: ctx.role }, true);
     loadProjectData(ctx.tech, ctx.project);
   };
 
@@ -390,6 +403,20 @@ async function loadProjectData(tech, project) {
   if (accessEl) accessEl.textContent = projectData.accessInstructions ? `Access: ${projectData.accessInstructions}` : '';
   const warrantyEl = document.getElementById('project-warranty');
   if (warrantyEl) warrantyEl.textContent = projectData.warrantyFlag ? `Warranty/Contract: ${projectData.warrantyFlag}` : '';
+
+  const lockBadge = document.getElementById('projectLockBadge');
+  const lockBtn = document.getElementById('projectLockBtn');
+  const isLocked = projectData.editLock?.locked === true;
+  if (lockBadge) {
+    lockBadge.dataset.locked = isLocked ? 'true' : 'false';
+    lockBadge.textContent = isLocked ? `🔒 Locked${projectData.editLock?.reason ? `: ${projectData.editLock.reason}` : ''}` : '🔓 Unlocked';
+    lockBadge.style.color = isLocked ? '#b00020' : '#0a7d19';
+  }
+  if (lockBtn) {
+    const canToggle = ctx.role === 'project_manager' || isAdminRole(ctx.role);
+    lockBtn.style.display = canToggle ? '' : 'none';
+    lockBtn.textContent = isLocked ? 'Unlock' : 'Lock';
+  }
 
   const signer = document.getElementById('signatureSigner');
   const sigCanvas = document.getElementById('signatureCanvas');
