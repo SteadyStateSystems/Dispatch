@@ -372,6 +372,13 @@ function headerControls() {
     };
   }
 
+  const financeExportBtn = document.getElementById('financeExportBtn');
+  if (financeExportBtn) {
+    financeExportBtn.onclick = () => {
+      window.open(`${API_BASE}/finance-projects.csv`, '_blank');
+    };
+  }
+
   const adminTechBtn2 = document.getElementById("adminTechBtn");
   if (adminTechBtn2) {
     adminTechBtn2.onclick = () => {
