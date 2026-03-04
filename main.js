@@ -351,7 +351,8 @@ function headerControls() {
     const summary = document.getElementById('financeSummaryLine');
     if (summary) {
       const margin = items.reduce((s, x) => s + Number(x.margin || 0), 0);
-      summary.textContent = `Projects: ${items.length} · Combined Margin: $${margin.toFixed(2)}`;
+      const overdue = items.filter(x => x.invoiceStatus === 'invoiced' && Number(x.invoiceAgeDays || 0) >= 14).length;
+      summary.textContent = `Projects: ${items.length} · Combined Margin: $${margin.toFixed(2)} · Overdue Invoiced: ${overdue}`;
     }
   }
 
@@ -538,7 +539,7 @@ async function loadPMSummary() {
     if (!pmRes.ok) throw new Error('summary failed');
     const hours = p.hoursByTech || {};
     const hourText = Object.entries(hours).slice(0, 3).map(([k,v]) => `${k}:${v}h`).join(' · ');
-    const finText = finRes.ok ? ` · Margin: $${(f.estimatedMargin || 0).toFixed(2)} · Invoices P/I/N: ${f.invoiceCounts?.paid || 0}/${f.invoiceCounts?.invoiced || 0}/${f.invoiceCounts?.notInvoiced || 0}` : '';
+    const finText = finRes.ok ? ` · Margin: $${(f.estimatedMargin || 0).toFixed(2)} · Invoices P/I/N: ${f.invoiceCounts?.paid || 0}/${f.invoiceCounts?.invoiced || 0}/${f.invoiceCounts?.notInvoiced || 0} · Overdue Inv: ${f.invoiceCounts?.overdueInvoiced || 0}` : '';
     box.textContent = `PM Summary — Total: ${p.totalProjects || 0} · Overdue: ${p.overdue || 0} · At Risk (48h): ${p.atRisk || 0}${hourText ? ` · Hours: ${hourText}` : ''}${finText}`;
   } catch {
     box.textContent = 'PM Summary unavailable';
