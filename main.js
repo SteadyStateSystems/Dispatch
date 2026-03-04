@@ -16,6 +16,8 @@ const dispatchViewState = {
   status: ''
 };
 
+let financeBoardCache = [];
+
 function isAdminRole(role) {
   return role === "admin" || role === "system_admin";
 }
@@ -300,6 +302,7 @@ function headerControls() {
       if (overdueOnly && !(x.invoiceStatus === 'invoiced' && Number(x.invoiceAgeDays || 0) >= 14)) return false;
       return true;
     });
+    financeBoardCache = items;
 
     const list = document.getElementById('financeBoardList');
     if (list) {
@@ -383,6 +386,41 @@ function headerControls() {
   if (financeOverdueOnly) {
     financeOverdueOnly.onchange = async () => {
       try { await renderFinanceBoard(); } catch (e) { alert(`Finance filter failed: ${e.message}`); }
+    };
+  }
+
+  async function runFinanceBulk(invoiceStatus) {
+    if (!financeBoardCache.length) {
+      alert('No filtered finance rows to update.');
+      return;
+    }
+    const res = await fetch(`${API_BASE}/finance-bulk-status`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-m3t-api-key': localStorage.getItem('m3t-api-key') || '',
+        'x-m3t-role': appState.role || 'project_manager',
+        'ngrok-skip-browser-warning': 'true'
+      },
+      body: JSON.stringify({ items: financeBoardCache.map(x => ({ tech: x.tech, project: x.project })), invoiceStatus, updatedBy: 'PM', role: appState.role })
+    });
+    const out = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(out.error || `HTTP ${res.status}`);
+    alert(`Updated ${out.updatedCount || 0} rows to ${invoiceStatus}.`);
+    await renderFinanceBoard();
+  }
+
+  const financeBulkInvoicedBtn = document.getElementById('financeBulkInvoicedBtn');
+  if (financeBulkInvoicedBtn) {
+    financeBulkInvoicedBtn.onclick = async () => {
+      try { await runFinanceBulk('invoiced'); } catch (e) { alert(`Bulk update failed: ${e.message}`); }
+    };
+  }
+
+  const financeBulkPaidBtn = document.getElementById('financeBulkPaidBtn');
+  if (financeBulkPaidBtn) {
+    financeBulkPaidBtn.onclick = async () => {
+      try { await runFinanceBulk('paid'); } catch (e) { alert(`Bulk update failed: ${e.message}`); }
     };
   }
 

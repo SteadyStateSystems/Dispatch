@@ -169,6 +169,8 @@
           <input type="checkbox" id="financeOverdueOnly" /> Overdue invoiced only (14d+)
         </label>
         <button type="button" id="financeRefreshBtn">Refresh</button>
+        <button type="button" id="financeBulkInvoicedBtn">Mark Filtered Invoiced</button>
+        <button type="button" id="financeBulkPaidBtn">Mark Filtered Paid</button>
         <button type="button" id="financeExportBtn">Export CSV</button>
       </div>
       <div id="financeSummaryLine" style="margin-bottom:0.6rem; color:#333;"></div>
@@ -199,8 +201,8 @@
     </div>
   </div>
 
-  <script src="main.js?v=20260304-0948"></script>
-  <script src="pwa.js?v=20260304-0948"></script>
+  <script src="main.js?v=20260304-0958"></script>
+  <script src="pwa.js?v=20260304-0958"></script>
 
   <script>
     const FORM_API_BASE = window.M3T_API_BASE || 'https://adjusted-bluejay-gratefully.ngrok-free.app';
