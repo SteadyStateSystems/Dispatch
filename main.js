@@ -51,6 +51,7 @@ function headerControls() {
     </label>
     <button id="globalAddProjectBtn">+ Add Project</button>
     <button id="dispatchBoardBtn">Dispatch Board</button>
+    <button id="financeBoardBtn">Finance</button>
     <button id="adminTechBtn">Tech Admin</button>
     <button id="reloadBtn">Refresh</button>
   `;
@@ -285,6 +286,61 @@ function headerControls() {
       } catch (e) {
         alert(`Recurring scheduler failed: ${e.message}`);
       }
+    };
+  }
+
+  async function renderFinanceBoard() {
+    const statusFilter = document.getElementById('financeStatusFilter')?.value || '';
+    const res = await fetch(`${API_BASE}/finance-projects`, { headers: { "ngrok-skip-browser-warning": "true" } });
+    const p = await res.json();
+    if (!res.ok) throw new Error('Finance board failed');
+    const items = (p.items || []).filter(x => !statusFilter || x.invoiceStatus === statusFilter);
+
+    const list = document.getElementById('financeBoardList');
+    if (list) {
+      list.innerHTML = '';
+      items.forEach(it => {
+        const li = document.createElement('li');
+        li.style.listStyle = 'none';
+        li.style.border = '1px solid #ddd';
+        li.style.borderRadius = '8px';
+        li.style.padding = '0.5rem';
+        li.textContent = `${it.tech} · ${it.project} · ${it.invoiceStatus} · Budget $${(it.budgetAmount||0).toFixed(2)} · Cost $${(it.actualCost||0).toFixed(2)} · Margin $${(it.margin||0).toFixed(2)}`;
+        list.appendChild(li);
+      });
+    }
+
+    const summary = document.getElementById('financeSummaryLine');
+    if (summary) {
+      const margin = items.reduce((s, x) => s + Number(x.margin || 0), 0);
+      summary.textContent = `Projects: ${items.length} · Combined Margin: $${margin.toFixed(2)}`;
+    }
+  }
+
+  const financeBtn = document.getElementById('financeBoardBtn');
+  if (financeBtn) {
+    financeBtn.onclick = async () => {
+      try {
+        await renderFinanceBoard();
+        const ov = document.getElementById('financeOverlay');
+        if (ov) ov.style.display = 'block';
+      } catch (e) {
+        alert(`Finance board failed: ${e.message}`);
+      }
+    };
+  }
+
+  const financeRefreshBtn = document.getElementById('financeRefreshBtn');
+  if (financeRefreshBtn) {
+    financeRefreshBtn.onclick = async () => {
+      try { await renderFinanceBoard(); } catch (e) { alert(`Finance refresh failed: ${e.message}`); }
+    };
+  }
+
+  const financeStatusFilter = document.getElementById('financeStatusFilter');
+  if (financeStatusFilter) {
+    financeStatusFilter.onchange = async () => {
+      try { await renderFinanceBoard(); } catch (e) { alert(`Finance filter failed: ${e.message}`); }
     };
   }
 
