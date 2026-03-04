@@ -502,6 +502,13 @@ function headerControls() {
     };
   }
 
+  const financeFollowupsExportBtn = document.getElementById('financeFollowupsExportBtn');
+  if (financeFollowupsExportBtn) {
+    financeFollowupsExportBtn.onclick = () => {
+      window.open(`${API_BASE}/finance-followups.csv`, '_blank');
+    };
+  }
+
   const adminTechBtn2 = document.getElementById("adminTechBtn");
   if (adminTechBtn2) {
     adminTechBtn2.onclick = () => {
