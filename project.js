@@ -61,8 +61,31 @@ function installExtras() {
     }
     const currentlyLocked = document.getElementById('projectLockBadge')?.dataset.locked === 'true';
     const nextLocked = !currentlyLocked;
-    const reason = nextLocked ? (prompt('Lock reason (optional):') || '') : '';
-    await apiPost('/project-lock', { tech: ctx.tech, project: ctx.project, locked: nextLocked, reason, updatedBy: 'PM', role: ctx.role }, true);
+
+    if (nextLocked) {
+      const reason = prompt('Lock reason (optional):') || '';
+      const approvalMode = confirm('Require explicit PM/Admin approval to unlock?');
+      await apiPost('/project-lock', {
+        tech: ctx.tech,
+        project: ctx.project,
+        locked: true,
+        reason,
+        requiresApprovalToUnlock: approvalMode,
+        updatedBy: 'PM',
+        role: ctx.role
+      }, true);
+    } else {
+      const approver = prompt('Approver name for unlock (required if approval mode enabled):') || '';
+      await apiPost('/project-lock', {
+        tech: ctx.tech,
+        project: ctx.project,
+        locked: false,
+        approvalBy: approver,
+        updatedBy: 'PM',
+        role: ctx.role
+      }, true);
+    }
+
     loadProjectData(ctx.tech, ctx.project);
   };
 
@@ -413,7 +436,10 @@ async function loadProjectData(tech, project) {
   const isLocked = projectData.editLock?.locked === true;
   if (lockBadge) {
     lockBadge.dataset.locked = isLocked ? 'true' : 'false';
-    lockBadge.textContent = isLocked ? `🔒 Locked${projectData.editLock?.reason ? `: ${projectData.editLock.reason}` : ''}` : '🔓 Unlocked';
+    const approvalTag = projectData.editLock?.requiresApprovalToUnlock ? ' · approval required to unlock' : '';
+    lockBadge.textContent = isLocked
+      ? `🔒 Locked${projectData.editLock?.reason ? `: ${projectData.editLock.reason}` : ''}${approvalTag}`
+      : `🔓 Unlocked${projectData.editLock?.approvalBy ? ` · approved by ${projectData.editLock.approvalBy}` : ''}`;
     lockBadge.style.color = isLocked ? '#b00020' : '#0a7d19';
   }
   if (lockBtn) {
