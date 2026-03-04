@@ -294,8 +294,12 @@ function headerControls() {
   async function renderFinanceBoard() {
     const statusFilter = document.getElementById('financeStatusFilter')?.value || '';
     const overdueOnly = document.getElementById('financeOverdueOnly')?.checked === true;
-    const res = await fetch(`${API_BASE}/finance-projects`, { headers: { "ngrok-skip-browser-warning": "true" } });
+    const [res, alertsRes] = await Promise.all([
+      fetch(`${API_BASE}/finance-projects`, { headers: { "ngrok-skip-browser-warning": "true" } }),
+      fetch(`${API_BASE}/finance-alerts`, { headers: { "ngrok-skip-browser-warning": "true" } })
+    ]);
     const p = await res.json();
+    const a = await alertsRes.json().catch(() => ({ alerts: [] }));
     if (!res.ok) throw new Error('Finance board failed');
     const items = (p.items || []).filter(x => {
       if (statusFilter && x.invoiceStatus !== statusFilter) return false;
@@ -353,6 +357,12 @@ function headerControls() {
       const margin = items.reduce((s, x) => s + Number(x.margin || 0), 0);
       const overdue = items.filter(x => x.invoiceStatus === 'invoiced' && Number(x.invoiceAgeDays || 0) >= 14).length;
       summary.textContent = `Projects: ${items.length} · Combined Margin: $${margin.toFixed(2)} · Overdue Invoiced: ${overdue}`;
+    }
+
+    const alertsLine = document.getElementById('financeAlertsLine');
+    if (alertsLine) {
+      const alerts = Array.isArray(a.alerts) ? a.alerts : [];
+      alertsLine.textContent = alerts.length ? `⚠ Finance alerts: ${alerts.length} (${alerts.slice(0,3).map(x => `${x.tech}/${x.project}`).join(', ')}${alerts.length > 3 ? '…' : ''})` : '';
     }
   }
 
