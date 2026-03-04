@@ -344,6 +344,7 @@ function headerControls() {
             <button data-act="open">Open Project</button>
             <button data-act="note">Add Note</button>
             <button data-act="viewNotes">View Notes</button>
+            <button data-act="delLastNote">Delete Last Note</button>
             <button data-act="exportNotes">Export Notes CSV</button>
             <button data-act="inv">Mark Invoiced</button>
             <button data-act="paid">Mark Paid</button>
@@ -401,6 +402,33 @@ function headerControls() {
             alert(lines.length ? lines.join('\n') : 'No finance notes yet.');
           } catch (e) {
             alert(`Load notes failed: ${e.message}`);
+          }
+        };
+        li.querySelector('[data-act="delLastNote"]').onclick = async () => {
+          try {
+            const r = await fetch(`${API_BASE}/project-finance-notes?tech=${encodeURIComponent(it.tech)}&project=${encodeURIComponent(it.project)}`, { headers: { 'ngrok-skip-browser-warning': 'true' } });
+            const body = await r.json().catch(() => ({}));
+            if (!r.ok) throw new Error(body.error || `HTTP ${r.status}`);
+            const latest = (body.notes || [])[0];
+            if (!latest?.id) return alert('No notes to delete.');
+            if (!confirm(`Delete latest note?\n\n${latest.text || ''}`)) return;
+
+            const d = await fetch(`${API_BASE}/project-finance-note-delete`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'x-m3t-api-key': localStorage.getItem('m3t-api-key') || '',
+                'x-m3t-role': appState.role || 'project_manager',
+                'ngrok-skip-browser-warning': 'true'
+              },
+              body: JSON.stringify({ tech: it.tech, project: it.project, noteId: latest.id, updatedBy: 'PM', role: appState.role })
+            });
+            const out = await d.json().catch(() => ({}));
+            if (!d.ok) throw new Error(out.error || `HTTP ${d.status}`);
+            alert('Latest finance note deleted.');
+            await renderFinanceBoard();
+          } catch (e) {
+            alert(`Delete note failed: ${e.message}`);
           }
         };
         li.querySelector('[data-act="exportNotes"]').onclick = () => {
