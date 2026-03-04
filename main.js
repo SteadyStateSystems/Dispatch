@@ -457,6 +457,13 @@ function headerControls() {
     };
   }
 
+  const financeRisksExportBtn = document.getElementById('financeRisksExportBtn');
+  if (financeRisksExportBtn) {
+    financeRisksExportBtn.onclick = () => {
+      window.open(`${API_BASE}/finance-risks.csv`, '_blank');
+    };
+  }
+
   const adminTechBtn2 = document.getElementById("adminTechBtn");
   if (adminTechBtn2) {
     adminTechBtn2.onclick = () => {
