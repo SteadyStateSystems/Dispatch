@@ -159,12 +159,19 @@ function headerControls() {
         <div><strong>${it.project}</strong> · ${it.tech} · ${it.status} · ${it.priority}</div>
         <div style="font-size:12px;color:#555;">${it.scheduledStart ? new Date(it.scheduledStart).toLocaleString() : 'Unscheduled'}</div>
         <div style="margin-top:0.4rem; display:flex; gap:0.4rem; flex-wrap:wrap;">
+          <button data-action="top">Move to Top</button>
           <button data-action="earlier">-30m</button>
           <button data-action="later">+30m</button>
           <button data-action="eta">Send ETA</button>
         </div>
       `;
 
+      li.querySelector('[data-action="top"]').onclick = async () => {
+        const all = (p.items || []).filter(x => x.tech === it.tech).map(x => x.project);
+        const ordered = [it.project, ...all.filter(n => n !== it.project)];
+        await dispatchAction('/dispatch/order', { tech: it.tech, orderedProjects: ordered });
+        await renderDispatchBoard();
+      };
       li.querySelector('[data-action="earlier"]').onclick = async () => {
         await dispatchAction('/dispatch/reorder', { tech: it.tech, project: it.project, direction: 'earlier', minutes: 30 });
         await renderDispatchBoard();
