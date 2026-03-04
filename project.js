@@ -109,7 +109,17 @@ function installExtras() {
     btn.addEventListener('click', async () => {
       const type = btn.getAttribute('data-time');
       try {
-        await apiPost('/time-events', { tech: ctx.tech, project: ctx.project, type, user: ctx.tech, source: 'web', role: ctx.role }, true);
+        let geo = {};
+        if (navigator.geolocation) {
+          try {
+            const pos = await new Promise((resolve, reject) => navigator.geolocation.getCurrentPosition(resolve, reject, { enableHighAccuracy: true, timeout: 5000 }));
+            geo = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+          } catch {
+            geo = {};
+          }
+        }
+
+        await apiPost('/time-events', { tech: ctx.tech, project: ctx.project, type, user: ctx.tech, source: 'web', role: ctx.role, ...geo }, true);
         loadProjectData(ctx.tech, ctx.project);
       } catch (err) {
         alert(`Time event blocked: ${err.message}`);
