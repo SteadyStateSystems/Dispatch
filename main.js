@@ -291,10 +291,15 @@ function headerControls() {
 
   async function renderFinanceBoard() {
     const statusFilter = document.getElementById('financeStatusFilter')?.value || '';
+    const overdueOnly = document.getElementById('financeOverdueOnly')?.checked === true;
     const res = await fetch(`${API_BASE}/finance-projects`, { headers: { "ngrok-skip-browser-warning": "true" } });
     const p = await res.json();
     if (!res.ok) throw new Error('Finance board failed');
-    const items = (p.items || []).filter(x => !statusFilter || x.invoiceStatus === statusFilter);
+    const items = (p.items || []).filter(x => {
+      if (statusFilter && x.invoiceStatus !== statusFilter) return false;
+      if (overdueOnly && !(x.invoiceStatus === 'invoiced' && Number(x.invoiceAgeDays || 0) >= 14)) return false;
+      return true;
+    });
 
     const list = document.getElementById('financeBoardList');
     if (list) {
@@ -305,9 +310,11 @@ function headerControls() {
         li.style.border = '1px solid #ddd';
         li.style.borderRadius = '8px';
         li.style.padding = '0.5rem';
+        const overdue = it.invoiceStatus === 'invoiced' && Number(it.invoiceAgeDays || 0) >= 14;
+        if (overdue) li.style.borderColor = '#c62828';
         li.innerHTML = `
           <div><strong>${it.tech}</strong> · ${it.project}</div>
-          <div style="font-size:12px;color:#555;">Status: ${it.invoiceStatus} · Budget $${(it.budgetAmount||0).toFixed(2)} · Cost $${(it.actualCost||0).toFixed(2)} · Margin $${(it.margin||0).toFixed(2)}</div>
+          <div style="font-size:12px;color:${overdue ? '#b71c1c' : '#555'};">Status: ${it.invoiceStatus}${it.invoiceAgeDays != null ? ` · Age ${it.invoiceAgeDays}d` : ''} · Budget $${(it.budgetAmount||0).toFixed(2)} · Cost $${(it.actualCost||0).toFixed(2)} · Margin $${(it.margin||0).toFixed(2)}</div>
           <div style="margin-top:0.35rem; display:flex; gap:0.35rem; flex-wrap:wrap;">
             <button data-act="inv">Mark Invoiced</button>
             <button data-act="paid">Mark Paid</button>
@@ -368,6 +375,13 @@ function headerControls() {
   const financeStatusFilter = document.getElementById('financeStatusFilter');
   if (financeStatusFilter) {
     financeStatusFilter.onchange = async () => {
+      try { await renderFinanceBoard(); } catch (e) { alert(`Finance filter failed: ${e.message}`); }
+    };
+  }
+
+  const financeOverdueOnly = document.getElementById('financeOverdueOnly');
+  if (financeOverdueOnly) {
+    financeOverdueOnly.onchange = async () => {
       try { await renderFinanceBoard(); } catch (e) { alert(`Finance filter failed: ${e.message}`); }
     };
   }
