@@ -386,12 +386,17 @@ async function loadPMSummary() {
     return;
   }
   try {
-    const res = await fetch(`${API_BASE}/pm-summary`, { headers: { "ngrok-skip-browser-warning": "true" } });
-    const p = await res.json();
-    if (!res.ok) throw new Error('summary failed');
+    const [pmRes, finRes] = await Promise.all([
+      fetch(`${API_BASE}/pm-summary`, { headers: { "ngrok-skip-browser-warning": "true" } }),
+      fetch(`${API_BASE}/finance-summary`, { headers: { "ngrok-skip-browser-warning": "true" } })
+    ]);
+    const p = await pmRes.json();
+    const f = await finRes.json();
+    if (!pmRes.ok) throw new Error('summary failed');
     const hours = p.hoursByTech || {};
     const hourText = Object.entries(hours).slice(0, 3).map(([k,v]) => `${k}:${v}h`).join(' · ');
-    box.textContent = `PM Summary — Total: ${p.totalProjects || 0} · Overdue: ${p.overdue || 0} · At Risk (48h): ${p.atRisk || 0}${hourText ? ` · Hours: ${hourText}` : ''}`;
+    const finText = finRes.ok ? ` · Margin: $${(f.estimatedMargin || 0).toFixed(2)} · Invoices P/I/N: ${f.invoiceCounts?.paid || 0}/${f.invoiceCounts?.invoiced || 0}/${f.invoiceCounts?.notInvoiced || 0}` : '';
+    box.textContent = `PM Summary — Total: ${p.totalProjects || 0} · Overdue: ${p.overdue || 0} · At Risk (48h): ${p.atRisk || 0}${hourText ? ` · Hours: ${hourText}` : ''}${finText}`;
   } catch {
     box.textContent = 'PM Summary unavailable';
   }
