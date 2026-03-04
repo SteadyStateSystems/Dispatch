@@ -174,11 +174,12 @@ function headerControls() {
         await renderDispatchBoard();
       };
       li.querySelector('[data-action="eta"]').onclick = async () => {
-        const start = prompt('ETA start (ISO or blank for now+30m):') || new Date(Date.now() + 30 * 60 * 1000).toISOString();
-        const end = prompt('ETA end (ISO or blank for start+30m):') || new Date(new Date(start).getTime() + 30 * 60 * 1000).toISOString();
-        const msg = prompt('ETA message (optional):') || '';
+        const now = Date.now();
+        const start = new Date(now + 30 * 60 * 1000).toISOString();
+        const end = new Date(now + 60 * 60 * 1000).toISOString();
+        const msg = `ETA update: expected between ${new Date(start).toLocaleTimeString()} and ${new Date(end).toLocaleTimeString()}.`;
         await dispatchAction('/dispatch/eta-notify', { tech: it.tech, project: it.project, etaWindowStart: start, etaWindowEnd: end, message: msg });
-        alert('ETA update saved/logged.');
+        alert('ETA update saved/logged (default 30-60 minute window).');
         await renderDispatchBoard();
       };
 
@@ -203,6 +204,19 @@ function headerControls() {
   if (dispatchRefreshBtn) {
     dispatchRefreshBtn.onclick = async () => {
       try { await renderDispatchBoard(); } catch (e) { alert(`Refresh failed: ${e.message}`); }
+    };
+  }
+
+  const dispatchRunRecurrenceBtn = document.getElementById('dispatchRunRecurrenceBtn');
+  if (dispatchRunRecurrenceBtn) {
+    dispatchRunRecurrenceBtn.onclick = async () => {
+      try {
+        const out = await dispatchAction('/dispatch/run-recurrence', {});
+        alert(`Recurring scheduler complete. Created: ${(out.created || []).length}`);
+        await renderDispatchBoard();
+      } catch (e) {
+        alert(`Recurring scheduler failed: ${e.message}`);
+      }
     };
   }
 

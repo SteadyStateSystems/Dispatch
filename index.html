@@ -126,6 +126,7 @@
       <p style="margin-top:0;color:#555;">Quick actions: move earlier/later and send ETA note.</p>
       <ul id="dispatchBoardList" style="display:flex;flex-direction:column;gap:0.5rem;padding-left:1rem;"></ul>
       <button type="button" id="dispatchRefreshBtn">Refresh Board</button>
+      <button type="button" id="dispatchRunRecurrenceBtn">Run Recurring Scheduler</button>
       <button type="button" onclick="document.getElementById('dispatchOverlay').style.display='none'">Close</button>
     </div>
   </div>
@@ -152,8 +153,8 @@
     </div>
   </div>
 
-  <script src="main.js?v=20260304-0740"></script>
-  <script src="pwa.js?v=20260304-0740"></script>
+  <script src="main.js?v=20260304-0748"></script>
+  <script src="pwa.js?v=20260304-0748"></script>
 
   <script>
     const FORM_API_BASE = window.M3T_API_BASE || 'https://adjusted-bluejay-gratefully.ngrok-free.app';
