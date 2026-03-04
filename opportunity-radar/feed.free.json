@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-03-04T17:31:05.765Z",
+  "generatedAt": "2026-03-04T18:54:04.218Z",
   "tier": "free",
   "count": 10,
   "items": [
@@ -64,6 +64,18 @@
       "stale": false
     },
     {
+      "id": "york-0-aHR0cHM6Ly",
+      "title": "Volunteer Emergency Services Tax Refund Program The Board of Commissioners of York County approved a property tax refund program for members of fire companies and non-profit emergency medical service providers",
+      "source": "York County",
+      "deadline": null,
+      "score": 47.3,
+      "tier": "optional",
+      "url": "https://yorkcountypa.gov/Volunteer-Emergency-Services-Tax-Refund-Program",
+      "category": "procurement",
+      "location": "York County, PA",
+      "stale": false
+    },
+    {
       "id": "dced-0-aHR0cHM6Ly",
       "title": "Keystone Opportunity Zones",
       "source": "PA DCED",
@@ -107,18 +119,6 @@
       "score": 40.5,
       "tier": "optional",
       "url": "https://dced.pa.gov/programs-funding/commonwealth-financing-authority-cfa/",
-      "category": "grant",
-      "location": "Pennsylvania",
-      "stale": false
-    },
-    {
-      "id": "dced-4-aHR0cHM6Ly",
-      "title": "Compliance Resources",
-      "source": "PA DCED",
-      "deadline": null,
-      "score": 40.5,
-      "tier": "optional",
-      "url": "https://dced.pa.gov/programs-funding/compliance-resources/",
       "category": "grant",
       "location": "Pennsylvania",
       "stale": false
