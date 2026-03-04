@@ -485,6 +485,23 @@ function headerControls() {
     };
   }
 
+  const financeFollowupsBtn = document.getElementById('financeFollowupsBtn');
+  if (financeFollowupsBtn) {
+    financeFollowupsBtn.onclick = async () => {
+      try {
+        const res = await fetch(`${API_BASE}/finance-followups`, { headers: { "ngrok-skip-browser-warning": "true" } });
+        const p = await res.json();
+        if (!res.ok) throw new Error('followups failed');
+        const lines = (p.actions || []).slice(0, 25).map((x, i) => `${i + 1}. [${x.priority.toUpperCase()}] ${x.tech}/${x.project} — ${x.action} (${x.reason})`);
+        const text = lines.length ? lines.join('\n') : 'No followups.';
+        await navigator.clipboard.writeText(text);
+        alert(`Followups copied (${lines.length}).`);
+      } catch (e) {
+        alert(`Followups failed: ${e.message}`);
+      }
+    };
+  }
+
   const adminTechBtn2 = document.getElementById("adminTechBtn");
   if (adminTechBtn2) {
     adminTechBtn2.onclick = () => {
