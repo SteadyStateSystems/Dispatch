@@ -159,6 +159,7 @@
     <div style="max-width:980px; margin:auto; background:white; padding:2rem; border-radius:1rem; box-shadow:0 0 10px rgba(0,0,0,0.2)">
       <h2>Finance Board</h2>
       <div style="display:flex; gap:0.5rem; margin-bottom:0.6rem; flex-wrap:wrap;">
+        <input id="financeSearchInput" placeholder="Search tech/project" />
         <select id="financeStatusFilter">
           <option value="">All Statuses</option>
           <option value="not_invoiced">Not Invoiced</option>
@@ -183,6 +184,7 @@
         <button type="button" id="financeFollowupsExportBtn">Export Followups CSV</button>
       </div>
       <div id="financeSummaryLine" style="margin-bottom:0.35rem; color:#333;"></div>
+      <div id="financeFollowupsLine" style="margin-bottom:0.35rem; color:#0d47a1; font-weight:700;"></div>
       <div id="financeAlertsLine" style="margin-bottom:0.35rem; color:#8b1e1e; font-weight:700;"></div>
       <div id="financeRisksLine" style="margin-bottom:0.6rem; color:#6a1b9a; font-weight:700;"></div>
       <ul id="financeBoardList" style="display:flex; flex-direction:column; gap:0.4rem; padding-left:1rem;"></ul>
@@ -212,8 +214,8 @@
     </div>
   </div>
 
-  <script src="main.js?v=20260304-1200"></script>
-  <script src="pwa.js?v=20260304-1200"></script>
+  <script src="main.js?v=20260304-1220"></script>
+  <script src="pwa.js?v=20260304-1220"></script>
 
   <script>
     const FORM_API_BASE = window.M3T_API_BASE || 'https://adjusted-bluejay-gratefully.ngrok-free.app';

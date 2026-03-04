@@ -293,21 +293,28 @@ function headerControls() {
 
   async function renderFinanceBoard() {
     const statusFilter = document.getElementById('financeStatusFilter')?.value || '';
+    const query = (document.getElementById('financeSearchInput')?.value || '').toLowerCase().trim();
     const overdueOnly = document.getElementById('financeOverdueOnly')?.checked === true;
-    const [res, alertsRes, risksRes] = await Promise.all([
+    const [res, alertsRes, risksRes, followupsRes] = await Promise.all([
       fetch(`${API_BASE}/finance-projects`, { headers: { "ngrok-skip-browser-warning": "true" } }),
       fetch(`${API_BASE}/finance-alerts`, { headers: { "ngrok-skip-browser-warning": "true" } }),
-      fetch(`${API_BASE}/finance-risks?all=true`, { headers: { "ngrok-skip-browser-warning": "true" } })
+      fetch(`${API_BASE}/finance-risks?all=true`, { headers: { "ngrok-skip-browser-warning": "true" } }),
+      fetch(`${API_BASE}/finance-followups`, { headers: { "ngrok-skip-browser-warning": "true" } })
     ]);
     const p = await res.json();
     const a = await alertsRes.json().catch(() => ({ alerts: [] }));
     const r = await risksRes.json().catch(() => ({ items: [] }));
+    const fup = await followupsRes.json().catch(() => ({ total: 0, priorityCounts: { high: 0, medium: 0, low: 0 } }));
     if (!res.ok) throw new Error('Finance board failed');
     const riskMap = new Map((r.items || []).map(x => [`${x.tech}::${x.project}`, Number(x.riskScore || 0)]));
     const sortMode = document.getElementById('financeSortMode')?.value || 'risk_desc';
     const items = (p.items || []).filter(x => {
       if (statusFilter && x.invoiceStatus !== statusFilter) return false;
       if (overdueOnly && !(x.invoiceStatus === 'invoiced' && Number(x.invoiceAgeDays || 0) >= 14)) return false;
+      if (query) {
+        const blob = `${x.tech} ${x.project}`.toLowerCase();
+        if (!blob.includes(query)) return false;
+      }
       return true;
     }).map(x => ({ ...x, riskScore: riskMap.get(`${x.tech}::${x.project}`) || 0 }));
 
@@ -375,6 +382,12 @@ function headerControls() {
       summary.textContent = `Projects: ${items.length} · Combined Margin: $${margin.toFixed(2)} · Overdue Invoiced: ${overdue}`;
     }
 
+    const followupsLine = document.getElementById('financeFollowupsLine');
+    if (followupsLine) {
+      const pc = fup.priorityCounts || {};
+      followupsLine.textContent = `📌 Followups: ${fup.total || 0} (H:${pc.high || 0} M:${pc.medium || 0} L:${pc.low || 0})`;
+    }
+
     const alertsLine = document.getElementById('financeAlertsLine');
     if (alertsLine) {
       const alerts = Array.isArray(a.alerts) ? a.alerts : [];
@@ -405,6 +418,13 @@ function headerControls() {
   if (financeRefreshBtn) {
     financeRefreshBtn.onclick = async () => {
       try { await renderFinanceBoard(); } catch (e) { alert(`Finance refresh failed: ${e.message}`); }
+    };
+  }
+
+  const financeSearchInput = document.getElementById('financeSearchInput');
+  if (financeSearchInput) {
+    financeSearchInput.oninput = async () => {
+      try { await renderFinanceBoard(); } catch (e) { alert(`Finance search failed: ${e.message}`); }
     };
   }
 
