@@ -1,4 +1,4 @@
-const CACHE = 'm3t-cache-v2';
+const CACHE = 'm3t-cache-v3';
 const ASSETS = [
   './index.html',
   './project.html',
