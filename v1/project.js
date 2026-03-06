@@ -468,7 +468,7 @@ async function loadProjectData(tech, project) {
   if (mapsBtn) {
     mapsBtn.onclick = () => {
       if (!addressText) return;
-      window.open(`https://maps.google.com/?q=${encodeURIComponent(addressText)}`, '_blank');
+      window.open(`https://maps.apple.com/?q=${encodeURIComponent(addressText)}`, '_blank');
     };
   }
 
