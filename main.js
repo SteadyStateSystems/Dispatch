@@ -234,12 +234,19 @@ function headerControls() {
   }
 
   const dispatchBtn = document.getElementById('dispatchBoardBtn');
+  const dispatchOverlay = document.getElementById('dispatchOverlay');
+  const closeDispatchOverlay = () => {
+    if (dispatchOverlay) dispatchOverlay.style.display = 'none';
+  };
+  ['dispatchBackBtn', 'dispatchCloseBtn', 'dispatchCloseBtnBottom'].forEach((id) => {
+    const btn = document.getElementById(id);
+    if (btn) btn.onclick = closeDispatchOverlay;
+  });
   if (dispatchBtn) {
     dispatchBtn.onclick = async () => {
       try {
         await renderDispatchBoard();
-        const ov = document.getElementById('dispatchOverlay');
-        if (ov) ov.style.display = 'block';
+        if (dispatchOverlay) dispatchOverlay.style.display = 'block';
       } catch (e) {
         alert(`Dispatch board failed: ${e.message}`);
       }
@@ -472,12 +479,19 @@ function headerControls() {
   }
 
   const financeBtn = document.getElementById('financeBoardBtn');
+  const financeOverlay = document.getElementById('financeOverlay');
+  const closeFinanceOverlay = () => {
+    if (financeOverlay) financeOverlay.style.display = 'none';
+  };
+  ['financeBackBtn', 'financeCloseBtn', 'financeCloseBtnBottom'].forEach((id) => {
+    const btn = document.getElementById(id);
+    if (btn) btn.onclick = closeFinanceOverlay;
+  });
   if (financeBtn) {
     financeBtn.onclick = async () => {
       try {
         await renderFinanceBoard();
-        const ov = document.getElementById('financeOverlay');
-        if (ov) ov.style.display = 'block';
+        if (financeOverlay) financeOverlay.style.display = 'block';
       } catch (e) {
         alert(`Finance board failed: ${e.message}`);
       }
