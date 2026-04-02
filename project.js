@@ -1,5 +1,5 @@
 const params = new URLSearchParams(window.location.search);
-const API_BASE = params.get("api") || localStorage.getItem("m3t-api-base") || "https://bca9-2601-981-4300-13e-4c83-7e0b-9f52-f286.ngrok-free.app";
+const API_BASE = params.get("api") || localStorage.getItem("m3t-api-base") || "https://adjusted-bluejay-gratefully.ngrok-free.app";
 if (API_BASE) localStorage.setItem("m3t-api-base", API_BASE);
 
 const queueKey = "m3t-offline-queue";

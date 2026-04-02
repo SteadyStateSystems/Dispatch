@@ -1,7 +1,7 @@
 const technicianContainer = document.getElementById("technicianContainer");
 const m3tApiFromQuery = new URLSearchParams(window.location.search).get("api");
 const m3tApiFromStorage = localStorage.getItem("m3t-api-base") || "";
-window.M3T_API_BASE = m3tApiFromQuery || window.M3T_API_BASE || m3tApiFromStorage || "https://db6a-2601-981-4300-13e-188e-cd21-3b6-9073.ngrok-free.app";
+window.M3T_API_BASE = m3tApiFromQuery || window.M3T_API_BASE || m3tApiFromStorage || "https://adjusted-bluejay-gratefully.ngrok-free.app";
 if (window.M3T_API_BASE) localStorage.setItem("m3t-api-base", window.M3T_API_BASE);
 const API_BASE = window.M3T_API_BASE;
 
