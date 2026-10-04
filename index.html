@@ -234,7 +234,8 @@
     </div>
   </div>
 
-  <script src="main.js?v=20260305-2230"></script>
+  <script src="auth-client.js?v=20261004-1"></script>
+  <script src="main.js?v=20261004-1"></script>
   <script src="pwa.js?v=20260305-2230"></script>
 
   <script>
@@ -289,14 +290,13 @@
           list.querySelectorAll('button[data-remove]').forEach(btn => {
             btn.addEventListener('click', async () => {
               const name = btn.getAttribute('data-remove');
-              const role = (document.getElementById('roleMode')?.value || localStorage.getItem('m3t-role') || 'tech').toLowerCase();
-              if (!['admin','system_admin','project_manager'].includes(role)) return alert('Admin only');
+              const role = (window.M3TAuth.currentUser()?.role || '').toLowerCase();
+              if (!['admin','system_admin'].includes(role)) return alert('System Admin only');
               const r = await fetch(`${FORM_API_BASE}/admin/techs/remove`, {
                 method: 'POST',
                 headers: {
                   'Content-Type': 'application/json',
                   'ngrok-skip-browser-warning': 'true',
-                  'x-m3t-role': role
                 },
                 body: JSON.stringify({ name, updatedBy: 'Admin', role })
               });
@@ -311,13 +311,12 @@
     }
 
     async function loadFeatureToggles() {
-      const role = (document.getElementById('roleMode')?.value || localStorage.getItem('m3t-role') || 'tech').toLowerCase();
+      const role = (window.M3TAuth.currentUser()?.role || '').toLowerCase();
       if (!['admin','system_admin'].includes(role)) return;
       try {
         const res = await fetch(`${FORM_API_BASE}/admin/feature-toggles`, {
           headers: {
             'ngrok-skip-browser-warning': 'true',
-            'x-m3t-role': role
           }
         });
         const p = await res.json().catch(()=>({}));
@@ -327,7 +326,7 @@
     }
 
     async function saveFeatureToggles() {
-      const role = (document.getElementById('roleMode')?.value || localStorage.getItem('m3t-role') || 'tech').toLowerCase();
+      const role = (window.M3TAuth.currentUser()?.role || '').toLowerCase();
       if (!['admin','system_admin'].includes(role)) return alert('System Admin only');
       const requiredPhotoEnforcement = !!document.getElementById('toggleRequiredPhotos')?.checked;
       const res = await fetch(`${FORM_API_BASE}/admin/feature-toggles`, {
@@ -335,7 +334,6 @@
         headers: {
           'Content-Type': 'application/json',
           'ngrok-skip-browser-warning': 'true',
-          'x-m3t-role': role
         },
         body: JSON.stringify({ requiredPhotoEnforcement, updatedBy: 'System Admin' })
       });
@@ -345,7 +343,7 @@
     }
 
     async function adminUpsertTech() {
-      const role = (document.getElementById('roleMode')?.value || localStorage.getItem('m3t-role') || 'tech').toLowerCase();
+      const role = (window.M3TAuth.currentUser()?.role || '').toLowerCase();
       if (!['admin','system_admin'].includes(role)) return alert('System Admin only');
       const name = document.getElementById('adminTechName').value.trim();
       const techRole = document.getElementById('adminTechRole').value;
@@ -355,7 +353,6 @@
         headers: {
           'Content-Type': 'application/json',
           'ngrok-skip-browser-warning': 'true',
-          'x-m3t-role': role
         },
         body: JSON.stringify({ name, role: techRole, active: true, updatedBy: 'System Admin' })
       });
@@ -373,9 +370,13 @@
     const toggleBtn = document.getElementById('saveFeatureTogglesBtn');
     if (toggleBtn) toggleBtn.addEventListener('click', saveFeatureToggles);
 
-    loadTemplates();
-    loadTechs();
-    loadFeatureToggles();
+    function loadAuthenticatedOptions() {
+      loadTemplates();
+      loadTechs();
+      loadFeatureToggles();
+    }
+    if (window.M3TAuth.currentUser()) loadAuthenticatedOptions();
+    else window.addEventListener('m3t-auth-ready', loadAuthenticatedOptions, { once: true });
 
     const addProjectForm = document.getElementById('addProjectForm');
     addProjectForm.setAttribute('novalidate', 'novalidate');
@@ -397,11 +398,10 @@
         return;
       }
 
-      const roleSelectEl = document.getElementById('roleMode');
-      const role = (roleSelectEl?.value || localStorage.getItem('m3t-role') || 'tech').toLowerCase();
+      const role = (window.M3TAuth.currentUser()?.role || '').toLowerCase();
       if (!['admin','system_admin','project_manager'].includes(role)) {
-        if (debugEl) debugEl.textContent = `❌ Blocked: role is ${role}. Switch Role to Admin.`;
-        alert('Admin role required to add projects.');
+        if (debugEl) debugEl.textContent = `❌ Blocked: role is ${role}.`;
+        alert('Project Manager or System Administrator access is required.');
         return;
       }
 
@@ -447,7 +447,6 @@
         headers: {
           'Content-Type': 'application/json',
           'ngrok-skip-browser-warning': 'true',
-          'x-m3t-role': role
         },
         body: JSON.stringify(requestBody)
       });
@@ -471,4 +470,3 @@
   </script>
 </body>
 </html>
-

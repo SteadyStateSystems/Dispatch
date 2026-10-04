@@ -7,7 +7,8 @@ const API_BASE = window.M3T_API_BASE;
 
 const appState = {
   data: null,
-  role: localStorage.getItem("m3t-role") || "tech",
+  role: null,
+  authUser: null,
   techFilter: localStorage.getItem("m3t-tech") || "",
   query: "",
   scheduleRange: localStorage.getItem("m3t-range") || "today",
@@ -29,18 +30,15 @@ function isSystemAdmin(role) {
   return role === "system_admin" || role === "admin";
 }
 
+function isProjectManagerRole(role) {
+  return role === "project_manager" || isSystemAdmin(role);
+}
 
 function headerControls() {
   const wrap = document.createElement("div");
   wrap.className = "top-controls";
   wrap.innerHTML = `
-    <label>Role
-      <select id="roleMode">
-        <option value="tech">Tech</option>
-        <option value="project_manager">Project Manager</option>
-        <option value="system_admin">System Admin</option>
-      </select>
-    </label>
+    <span id="currentUserLabel"></span>
     <label>My Jobs
       <select id="myTechFilter"><option value="">All techs</option></select>
     </label>
@@ -58,7 +56,9 @@ function headerControls() {
     <button id="dispatchBoardBtn">Dispatch Board</button>
     <button id="financeBoardBtn">Finance</button>
     <button id="adminTechBtn">Tech Admin</button>
+    <button id="userAdminBtn">User Accounts</button>
     <button id="reloadBtn">Refresh</button>
+    <button id="logoutBtn">Sign Out</button>
   `;
   const controlsHost = document.getElementById('dashboardControls');
   if (controlsHost) {
@@ -70,38 +70,29 @@ function headerControls() {
     controlsHost.appendChild(summary);
   }
 
-  const roleMode = document.getElementById("roleMode");
-  roleMode.value = appState.role;
-  roleMode.onchange = () => {
-    appState.role = roleMode.value;
-    localStorage.setItem("m3t-role", appState.role);
-    const addBtn = document.getElementById("globalAddProjectBtn");
-    const adminTechBtn = document.getElementById("adminTechBtn");
-    if (addBtn) {
-      addBtn.classList.toggle("disabled-btn", !isAdminRole(appState.role));
-      addBtn.title = !isAdminRole(appState.role) ? "Admin only" : "";
-    }
-    if (adminTechBtn) {
-      adminTechBtn.classList.toggle("disabled-btn", !isSystemAdmin(appState.role));
-      adminTechBtn.title = !isSystemAdmin(appState.role) ? "System Admin only" : "";
-    }
-    render();
-    loadPMSummary();
-  };
-
   const myTech = document.getElementById("myTechFilter");
   myTech.value = appState.techFilter;
 
   const addBtn = document.getElementById("globalAddProjectBtn");
   const adminTechBtn = document.getElementById("adminTechBtn");
+  const dispatchAccessBtn = document.getElementById("dispatchBoardBtn");
+  const financeAccessBtn = document.getElementById("financeBoardBtn");
+  const userAdminBtn = document.getElementById("userAdminBtn");
+  const userLabel = document.getElementById("currentUserLabel");
+  if (userLabel) userLabel.textContent = `${appState.authUser?.displayName || appState.authUser?.email || ''} · ${appState.role}`;
+  document.getElementById("logoutBtn").onclick = () => window.M3TAuth.logout();
   if (addBtn) {
-    addBtn.classList.toggle("disabled-btn", !isAdminRole(appState.role));
-    addBtn.title = !isAdminRole(appState.role) ? "Admin only" : "";
+    addBtn.hidden = !isProjectManagerRole(appState.role);
   }
   if (adminTechBtn) {
-    adminTechBtn.classList.toggle("disabled-btn", !isSystemAdmin(appState.role));
-    adminTechBtn.title = !isSystemAdmin(appState.role) ? "System Admin only" : "";
+    adminTechBtn.hidden = !isSystemAdmin(appState.role);
   }
+  if (userAdminBtn) {
+    userAdminBtn.hidden = !isSystemAdmin(appState.role);
+    userAdminBtn.onclick = openUserAdmin;
+  }
+  if (dispatchAccessBtn) dispatchAccessBtn.hidden = !isProjectManagerRole(appState.role);
+  if (financeAccessBtn) financeAccessBtn.hidden = !isProjectManagerRole(appState.role);
   myTech.onchange = () => {
     appState.techFilter = myTech.value;
     localStorage.setItem("m3t-tech", appState.techFilter);
@@ -128,8 +119,8 @@ function headerControls() {
 
   const addProjectBtn = document.getElementById("globalAddProjectBtn");
   addProjectBtn.onclick = () => {
-    if (!isAdminRole(appState.role)) {
-      alert("Add Project is Admin only. Switch Role to Admin.");
+    if (!isProjectManagerRole(appState.role)) {
+      alert("Project Manager or System Administrator access is required.");
       return;
     }
     const overlay = document.getElementById("addProjectOverlay");
@@ -144,7 +135,6 @@ function headerControls() {
       headers: {
         'Content-Type': 'application/json',
         'x-m3t-api-key': localStorage.getItem('m3t-api-key') || '',
-        'x-m3t-role': appState.role || 'project_manager',
         'ngrok-skip-browser-warning': 'true'
       },
       body: JSON.stringify({ ...body, role: appState.role, updatedBy: 'PM' })
@@ -368,7 +358,6 @@ function headerControls() {
             headers: {
               'Content-Type': 'application/json',
               'x-m3t-api-key': localStorage.getItem('m3t-api-key') || '',
-              'x-m3t-role': appState.role || 'project_manager',
               'ngrok-skip-browser-warning': 'true'
             },
             body: JSON.stringify({ tech: it.tech, project: it.project, invoiceStatus, updatedBy: 'PM', role: appState.role })
@@ -378,7 +367,7 @@ function headerControls() {
         };
 
         li.querySelector('[data-act="open"]').onclick = () => {
-          const url = `project.html?tech=${encodeURIComponent(it.tech)}&project=${encodeURIComponent(it.project)}&role=${encodeURIComponent(appState.role)}`;
+          const url = `project.html?tech=${encodeURIComponent(it.tech)}&project=${encodeURIComponent(it.project)}`;
           window.location.href = url;
         };
         li.querySelector('[data-act="note"]').onclick = async () => {
@@ -390,7 +379,6 @@ function headerControls() {
               headers: {
                 'Content-Type': 'application/json',
                 'x-m3t-api-key': localStorage.getItem('m3t-api-key') || '',
-                'x-m3t-role': appState.role || 'project_manager',
                 'ngrok-skip-browser-warning': 'true'
               },
               body: JSON.stringify({ tech: it.tech, project: it.project, text, updatedBy: 'PM', role: appState.role })
@@ -428,7 +416,6 @@ function headerControls() {
               headers: {
                 'Content-Type': 'application/json',
                 'x-m3t-api-key': localStorage.getItem('m3t-api-key') || '',
-                'x-m3t-role': appState.role || 'project_manager',
                 'ngrok-skip-browser-warning': 'true'
               },
               body: JSON.stringify({ tech: it.tech, project: it.project, noteId: latest.id, updatedBy: 'PM', role: appState.role })
@@ -543,7 +530,6 @@ function headerControls() {
       headers: {
         'Content-Type': 'application/json',
         'x-m3t-api-key': localStorage.getItem('m3t-api-key') || '',
-        'x-m3t-role': appState.role || 'project_manager',
         'ngrok-skip-browser-warning': 'true'
       },
       body: JSON.stringify({ items: financeBoardCache.map(x => ({ tech: x.tech, project: x.project })), invoiceStatus, updatedBy: 'PM', role: appState.role })
@@ -628,6 +614,98 @@ function headerControls() {
   document.getElementById("reloadBtn").onclick = loadData;
 }
 
+async function openUserAdmin() {
+  let overlay = document.getElementById('userAdminOverlay');
+  if (!overlay) {
+    overlay = document.createElement('div');
+    overlay.id = 'userAdminOverlay';
+    overlay.style.cssText = 'position:fixed;inset:0;z-index:12000;background:#f5f5f5;overflow:auto;padding:1rem';
+    overlay.innerHTML = `
+      <div style="max-width:850px;margin:auto;background:#fff;padding:1.25rem;border-radius:12px">
+        <div style="display:flex;justify-content:space-between;gap:1rem"><h2>User Accounts</h2><button id="userAdminClose">Close</button></div>
+        <form id="inviteUserForm" style="display:grid;gap:.65rem;grid-template-columns:repeat(auto-fit,minmax(180px,1fr))">
+          <input name="email" type="email" placeholder="employee@example.com" required>
+          <input name="displayName" placeholder="Display name" required>
+          <select name="role"><option value="technician">Technician</option><option value="project_manager">Project Manager</option><option value="system_admin">System Administrator</option></select>
+          <input name="technicianName" placeholder="Technician record (tech only)">
+          <button type="submit">Create Invitation</button>
+        </form>
+        <p id="inviteResult"></p>
+        <div id="userAdminList"></div>
+      </div>`;
+    document.body.appendChild(overlay);
+    overlay.querySelector('#userAdminClose').onclick = () => { overlay.style.display = 'none'; };
+    overlay.querySelector('#inviteUserForm').onsubmit = async event => {
+      event.preventDefault();
+      const form = new FormData(event.currentTarget);
+      const response = await fetch(`${API_BASE}/admin/invitations`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(Object.fromEntries(form.entries()))
+      });
+      const payload = await response.json().catch(() => ({}));
+      const result = overlay.querySelector('#inviteResult');
+      if (!response.ok) return void (result.textContent = payload.error || 'Invitation failed');
+      const link = new URL(window.location.href);
+      link.search = '';
+      link.searchParams.set('invite', payload.invitation.token);
+      result.textContent = `One-time setup link (expires ${payload.invitation.expiresAt}): ${link}`;
+      if (navigator.clipboard) navigator.clipboard.writeText(String(link)).catch(() => {});
+      event.currentTarget.reset();
+      await loadUserAdminList(overlay);
+    };
+  }
+  overlay.style.display = 'block';
+  await loadUserAdminList(overlay);
+}
+
+async function loadUserAdminList(overlay) {
+  const response = await fetch(`${API_BASE}/admin/users`);
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(payload.error || 'Unable to load users');
+  const host = overlay.querySelector('#userAdminList');
+  host.replaceChildren();
+  for (const user of payload.users || []) {
+    const row = document.createElement('div');
+    row.style.cssText = 'display:flex;gap:.5rem;align-items:center;flex-wrap:wrap;border-top:1px solid #ddd;padding:.75rem 0';
+    const label = document.createElement('span');
+    label.textContent = `${user.displayName} · ${user.email} · ${user.role} · ${user.status}`;
+    row.appendChild(label);
+    const reset = document.createElement('button');
+    reset.textContent = 'Reset Link';
+    reset.onclick = async () => {
+      const r = await fetch(`${API_BASE}/admin/password-resets`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: user.id })
+      });
+      const p = await r.json().catch(() => ({}));
+      if (!r.ok) return alert(p.error || 'Reset failed');
+      const link = new URL(window.location.href);
+      link.search = '';
+      link.searchParams.set('reset', p.reset.token);
+      prompt('One-time password reset link:', String(link));
+    };
+    row.appendChild(reset);
+    if (user.id !== appState.authUser.id) {
+      const toggle = document.createElement('button');
+      toggle.textContent = user.status === 'disabled' ? 'Enable' : 'Disable';
+      toggle.onclick = async () => {
+        const r = await fetch(`${API_BASE}/admin/users/${encodeURIComponent(user.id)}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status: user.status === 'disabled' ? 'active' : 'disabled' })
+        });
+        const p = await r.json().catch(() => ({}));
+        if (!r.ok) return alert(p.error || 'Account update failed');
+        await loadUserAdminList(overlay);
+      };
+      row.appendChild(toggle);
+    }
+    host.appendChild(row);
+  }
+}
+
 function populateTechFilter() {
   const myTech = document.getElementById("myTechFilter");
   if (!myTech || !appState.data?.technicians) return;
@@ -706,7 +784,7 @@ function projectMatches(techName, projectName, project) {
 async function loadPMSummary() {
   const box = document.getElementById('pmSummary');
   if (!box) return;
-  if (!(appState.role === 'admin' || appState.role === 'project_manager')) {
+  if (!isProjectManagerRole(appState.role)) {
     box.textContent = '';
     return;
   }
@@ -767,7 +845,7 @@ function render() {
       `;
 
       entry.addEventListener("click", () => {
-        const url = `project.html?tech=${encodeURIComponent(techName)}&project=${encodeURIComponent(projectName)}&role=${encodeURIComponent(appState.role)}`;
+        const url = `project.html?tech=${encodeURIComponent(techName)}&project=${encodeURIComponent(projectName)}`;
         window.location.href = url;
       });
 
@@ -804,6 +882,16 @@ async function loadData() {
   }
 }
 
-headerControls();
-loadData();
+async function startApp() {
+  const user = await window.M3TAuth.bootstrap(API_BASE);
+  appState.authUser = user;
+  appState.role = user.role;
+  if (user.role === 'technician' && user.technicianName) {
+    appState.techFilter = user.technicianName;
+    appState.currentTech = user.technicianName;
+  }
+  headerControls();
+  loadData();
+}
 
+startApp();

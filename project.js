@@ -6,16 +6,18 @@ const queueKey = "m3t-offline-queue";
 const ctx = {
   tech: params.get("tech"),
   project: params.get("project"),
-  role: (params.get("role") || localStorage.getItem("m3t-role") || "tech").toLowerCase()
+  role: null,
+  authUser: null
 };
-
-localStorage.setItem("m3t-role", ctx.role);
 
 function isAdminRole(role) {
   return role === "admin" || role === "system_admin";
 }
 
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
+  const user = await window.M3TAuth.bootstrap(API_BASE);
+  ctx.authUser = user;
+  ctx.role = user.role;
   document.getElementById("project-name").textContent = ctx.project || "Project";
   installExtras();
   loadProjectData(ctx.tech, ctx.project);
@@ -29,26 +31,17 @@ function installExtras() {
   const roleBar = document.createElement("div");
   roleBar.className = "role-bar";
   roleBar.innerHTML = `
-    <strong>Role:</strong>
-    <select id="roleModeProject">
-      <option value="tech">Tech</option>
-      <option value="project_manager">Project Manager</option>
-      <option value="system_admin">System Admin</option>
-    </select>
+    <strong>${ctx.authUser?.displayName || ctx.authUser?.email || ''}</strong>
+    <span>${ctx.role}</span>
     <button id="projectLockBtn">Lock/Unlock</button>
     <button id="undoBtn">Undo</button>
+    <button id="projectLogoutBtn">Sign Out</button>
     <span id="projectLockBadge" style="font-weight:700;"></span>
     <span id="offlineBadge"></span>
   `;
   container.prepend(roleBar);
 
-  const roleSelect = document.getElementById("roleModeProject");
-  roleSelect.value = ctx.role;
-  roleSelect.onchange = () => {
-    ctx.role = roleSelect.value;
-    localStorage.setItem("m3t-role", ctx.role);
-    loadProjectData(ctx.tech, ctx.project);
-  };
+  document.getElementById("projectLogoutBtn").onclick = () => window.M3TAuth.logout();
 
   document.getElementById("undoBtn").onclick = async () => {
     if (!isAdminRole(ctx.role)) return alert("Admin role required.");
@@ -393,7 +386,6 @@ async function apiPost(path, body, allowQueue = true, silent = false) {
     headers: {
       "Content-Type": "application/json",
       "ngrok-skip-browser-warning": "true",
-      "x-m3t-role": ctx.role
     },
     body: JSON.stringify(body)
   });
@@ -405,8 +397,8 @@ async function apiPost(path, body, allowQueue = true, silent = false) {
 function setAdminOnlyButtons() {
   const adminOnly = document.querySelectorAll(".admin-only");
   adminOnly.forEach((el) => {
-    el.disabled = ctx.role !== "admin";
-    el.title = ctx.role !== "admin" ? "Admin only" : "";
+    el.disabled = !isAdminRole(ctx.role);
+    el.title = !isAdminRole(ctx.role) ? "System Admin only" : "";
   });
 }
 
@@ -544,7 +536,7 @@ async function loadProjectData(tech, project) {
     del.textContent = "Delete";
     del.className = "admin-only";
     del.onclick = async () => {
-      if (ctx.role !== "admin") return alert("Admin role required.");
+      if (!isAdminRole(ctx.role)) return alert("System Admin role required.");
       await apiPost("/deleteItem", { tech, project, type: "task", name: task.name, updatedBy: "Admin", role: ctx.role }, true);
       loadProjectData(tech, project);
     };
