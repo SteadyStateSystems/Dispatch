@@ -47,3 +47,22 @@ Update this file and the live folder PROJECT_STATUS.md before and after implemen
 - The launcher does not provide those settings, so authenticated and write routes cannot operate correctly after startup.
 - Resolution requires an approved credential-storage and launcher update; no credentials were generated or changed during catch-up.
 
+## Authentication modernization started 2026-10-04
+- User approved invitation-only employee accounts using unique email addresses, secure password hashes, one-time setup/reset links, revocable sessions, and server-enforced roles.
+- Planned initial roles: technician, project_manager, and system_admin. Open public registration is explicitly out of scope.
+- Existing plaintext users in data.json will not be migrated with their old passwords. They will be disabled as login records and must establish new credentials through an invitation.
+- Authentication state will move to a separate local SQLite database; operational project records remain in data.json during this phase.
+- The legacy client-side role selector and role headers are not trusted authorization and will be removed from the active root frontend.
+- Finance reads require project_manager or system_admin; user/security administration requires system_admin.
+- Fresh verified rollback point: C:\Users\asshole\Desktop\M3T-PreAuth-20261004-164758 (93 files, valid Git bundle, SHA256SUMS.json).
+- Baseline Git commit before this phase: 3ed7ed5961d6def804d3a7bb5e98a985d7cf43b3.
+- Baseline data.json SHA-256: 59AE36C262A625B37FE3074F5D4DAD9CE67D21D2C9F90A3C096B40F499AA1E49.
+- Runtime remains stopped. No production data mutation or credential creation has occurred yet.
+
+### Bounded implementation
+1. Add the SQLite account/session/invitation store and Argon2id password hashing.
+2. Add one-time administrator bootstrap, invitation acceptance, login/logout/session, reset, and account-management routes.
+3. Enforce the role matrix on every sensitive API route and eliminate the shared write token from browser authorization.
+4. Replace client-side role switching with authenticated session state.
+5. Add isolated temporary-database tests and prove that live JSON hashes do not change.
+6. Generate runtime secrets in an ACL-restricted local configuration, repair startup, then verify local and tunnel paths.
