@@ -124,3 +124,11 @@ Update this file and the live folder PROJECT_STATUS.md before and after implemen
 - Dashboard and project controls now wrap at narrow widths; portrait mobile controls use full-width inputs/buttons and short landscape layouts no longer reserve fixed-header space.
 - Cache-busting query versions were advanced for the changed CSS and JavaScript assets.
 - Verification completed: `node --check` passed for all changed JavaScript, `git diff --check` passed, and an isolated DOM test passed PM Jobs default, technician switching, friendly labels, password visibility, and mismatch rejection. Full Playwright rendering was unavailable on the Gateway because its Chromium runtime lacks system libraries; no production data was used by the isolated test.
+
+
+### Deployment verification
+- Frontend implementation commit: d569176.
+- GitHub Pages serves the new Jobs/Technicians navigation and password confirmation assets.
+- Local and static-ngrok health checks return 200.
+- Production data.json, log.json, and undo-queue.json SHA-256 values match the verified pre-UI snapshot.
+- Windows repository matches origin/main; only known generated .next/ and node_modules/ folders are untracked.
