@@ -101,3 +101,16 @@ Update this file and the live folder PROJECT_STATUS.md before and after implemen
 - data.json SHA-256 remains 59AE36C262A625B37FE3074F5D4DAD9CE67D21D2C9F90A3C096B40F499AA1E49.
 - The authenticated browser client is deployed at https://steadystatesystems.github.io/Dispatch/; the ngrok root is the API-hosted legacy static copy and must not be used as the invitation frontend.
 - Remaining manual step: the owner must open the one-time Dispatch invitation URL, choose a password, and sign in. Full login verification is pending that password-setting step.
+
+## Responsive UI correction started 2026-10-04
+- Owner screenshots confirmed malformed account presentation, raw role identifiers, dashboard controls that crowd on mobile, project controls that overflow the card, and excessive header/card sizing in landscape.
+- The invitation/reset forms also require a password visibility control and password confirmation before submission.
+- Active branch is `main` at `cff7c03`, matching `origin/main`; only generated `.next/` and `node_modules/` folders are untracked in the Windows repository.
+- API and static ngrok health checks return 200. Production `data.json`, `log.json`, and `undo-queue.json` hashes remain at their authentication baseline values.
+- Verified pre-change snapshot: `C:\Users\asshole\Desktop\M3T-PreUI-20261004-185218` (96 files, valid Git bundle, SHA-256 manifest verified).
+
+### Bounded UI work
+1. Normalize the displayed account name and render friendly role labels.
+2. Add accessible show/hide controls and matching-password confirmation to invitation/reset forms.
+3. Reflow dashboard and project toolbars for narrow and landscape viewports without horizontal overflow.
+4. Run syntax/build checks plus mobile and desktop visual regression checks before deployment.
