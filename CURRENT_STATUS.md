@@ -39,3 +39,11 @@ Last verified: 2026-10-03
 ## Change control
 Update this file and the live folder PROJECT_STATUS.md before and after implementation work. Never mutate data.json without a timestamped, hash-verified copy.
 
+
+
+## Critical startup blocker found during final verification
+- The Windows Startup launcher is present and points to the correct live folder and static ngrok domain.
+- M3T_AUTH_SECRET, M3T_WRITE_TOKEN, and CORS_ORIGINS are not configured at process, user, or machine scope.
+- The launcher does not provide those settings, so authenticated and write routes cannot operate correctly after startup.
+- Resolution requires an approved credential-storage and launcher update; no credentials were generated or changed during catch-up.
+
