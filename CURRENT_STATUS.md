@@ -92,3 +92,12 @@ Update this file and the live folder PROJECT_STATUS.md before and after implemen
 2. Restore live and repository files from C:\Users\asshole\Desktop\M3T-PreAuth-20261004-164758 and verify SHA256SUMS.json.
 3. Restore Git from Project-Management.bundle only with explicit approval.
 4. The new auth database is separate at C:\Users\asshole\AppData\Local\M3T; preserve it unless the account system itself is intentionally rolled back.
+
+## First administrator activation 2026-10-04
+- The first system-administrator invitation was created for the owner; the one-time token is intentionally not recorded here.
+- The API is running from the ACL-restricted authentication database and local /health returned 200.
+- Unauthenticated local /data returned 401 as required.
+- The static ngrok tunnel is online and remote /health returned 200.
+- data.json SHA-256 remains 59AE36C262A625B37FE3074F5D4DAD9CE67D21D2C9F90A3C096B40F499AA1E49.
+- The authenticated browser client is deployed at https://steadystatesystems.github.io/Dispatch/; the ngrok root is the API-hosted legacy static copy and must not be used as the invitation frontend.
+- Remaining manual step: the owner must open the one-time Dispatch invitation URL, choose a password, and sign in. Full login verification is pending that password-setting step.
