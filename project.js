@@ -31,8 +31,8 @@ function installExtras() {
   const roleBar = document.createElement("div");
   roleBar.className = "role-bar";
   roleBar.innerHTML = `
-    <strong>${ctx.authUser?.displayName || ctx.authUser?.email || ''}</strong>
-    <span>${ctx.role}</span>
+    <strong>${window.M3TAuth.displayName(ctx.authUser)}</strong>
+    <span class="role-label">${window.M3TAuth.roleLabel(ctx.role)}</span>
     <button id="projectLockBtn">Lock/Unlock</button>
     <button id="undoBtn">Undo</button>
     <button id="projectLogoutBtn">Sign Out</button>

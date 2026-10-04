@@ -12,7 +12,8 @@ const appState = {
   techFilter: localStorage.getItem("m3t-tech") || "",
   query: "",
   scheduleRange: localStorage.getItem("m3t-range") || "today",
-  currentTech: localStorage.getItem("m3t-current-tech") || ""
+  currentTech: localStorage.getItem("m3t-current-tech") || "",
+  viewMode: "jobs"
 };
 
 const dispatchViewState = {
@@ -34,12 +35,26 @@ function isProjectManagerRole(role) {
   return role === "project_manager" || isSystemAdmin(role);
 }
 
+function setViewMode(mode) {
+  appState.viewMode = mode === "technicians" ? "technicians" : "jobs";
+  document.getElementById("jobsViewBtn")?.classList.toggle("active", appState.viewMode === "jobs");
+  document.getElementById("techniciansViewBtn")?.classList.toggle("active", appState.viewMode === "technicians");
+  render();
+}
+
 function headerControls() {
   const wrap = document.createElement("div");
   wrap.className = "top-controls";
   wrap.innerHTML = `
-    <span id="currentUserLabel"></span>
-    <label>My Jobs
+    <div class="account-summary">
+      <strong id="currentUserLabel"></strong>
+      <span id="currentRoleLabel" class="role-label"></span>
+    </div>
+    <div class="view-switch" id="viewSwitch" aria-label="Dashboard view">
+      <button id="jobsViewBtn" type="button">Jobs</button>
+      <button id="techniciansViewBtn" type="button">Technicians</button>
+    </div>
+    <label>Technician
       <select id="myTechFilter"><option value="">All techs</option></select>
     </label>
     <label>Range
@@ -79,7 +94,14 @@ function headerControls() {
   const financeAccessBtn = document.getElementById("financeBoardBtn");
   const userAdminBtn = document.getElementById("userAdminBtn");
   const userLabel = document.getElementById("currentUserLabel");
-  if (userLabel) userLabel.textContent = `${appState.authUser?.displayName || appState.authUser?.email || ''} · ${appState.role}`;
+  const roleLabel = document.getElementById("currentRoleLabel");
+  if (userLabel) userLabel.textContent = window.M3TAuth.displayName(appState.authUser);
+  if (roleLabel) roleLabel.textContent = window.M3TAuth.roleLabel(appState.role);
+  const viewSwitch = document.getElementById("viewSwitch");
+  if (viewSwitch) viewSwitch.hidden = !isProjectManagerRole(appState.role);
+  document.getElementById("jobsViewBtn").onclick = () => setViewMode("jobs");
+  document.getElementById("techniciansViewBtn").onclick = () => setViewMode("technicians");
+  setViewMode(isProjectManagerRole(appState.role) ? "jobs" : "technicians");
   document.getElementById("logoutBtn").onclick = () => window.M3TAuth.logout();
   if (addBtn) {
     addBtn.hidden = !isProjectManagerRole(appState.role);
@@ -710,7 +732,7 @@ function populateTechFilter() {
   const myTech = document.getElementById("myTechFilter");
   if (!myTech || !appState.data?.technicians) return;
   const current = myTech.value;
-  myTech.innerHTML = '<option value="">All techs</option>';
+  myTech.innerHTML = '<option value="all">All technicians</option>';
   Object.keys(appState.data.technicians).forEach((tech) => {
     const opt = document.createElement("option");
     opt.value = tech;
@@ -723,7 +745,7 @@ function populateTechFilter() {
   }
 
   if (!appState.techFilter) {
-    appState.techFilter = appState.currentTech;
+    appState.techFilter = isProjectManagerRole(appState.role) ? "all" : appState.currentTech;
     localStorage.setItem("m3t-tech", appState.techFilter);
   }
 
@@ -813,44 +835,58 @@ function render() {
     return;
   }
 
-  Object.entries(data.technicians).forEach(([techName, techData]) => {
-    const projects = Object.entries(techData.projects || {})
+  const technicianEntries = Object.entries(data.technicians)
+    .filter(([techName]) => !appState.techFilter || appState.techFilter === "all" || appState.techFilter === techName)
+    .map(([techName, techData]) => ({
+    techName,
+    projects: Object.entries(techData.projects || {})
       .filter(([, p]) => !p.deletedAt)
-      .filter(([projectName, p]) => projectMatches(techName, projectName, p));
+      .filter(([projectName, p]) => projectMatches(techName, projectName, p))
+  }));
+  const matchingTechnicians = technicianEntries.filter(({ projects }) => projects.length);
 
-    if (!projects.length) return;
+  const createProjectEntry = (techName, projectName, project) => {
+    const completion = projectProgress(project);
+    const entry = document.createElement("button");
+    entry.type = "button";
+    entry.className = "project-entry";
+    entry.innerHTML = `
+      <span class="project-name">${projectName}</span>
+      <span class="project-tech">${techName}</span>
+      <span>${completion}% Complete · ${project.status || 'scheduled'}</span>
+      <span class="progress-bar"><span class="progress-fill" style="width:${completion}%"></span></span>
+      <small>${project.scheduledStart ? `Scheduled: ${new Date(project.scheduledStart).toLocaleString()}` : 'Scheduled: n/a'}</small>
+      <small>Updated: ${project.lastUpdated ? new Date(project.lastUpdated).toLocaleString() : "n/a"}</small>
+    `;
+    entry.addEventListener("click", () => {
+      window.location.href = `project.html?tech=${encodeURIComponent(techName)}&project=${encodeURIComponent(projectName)}`;
+    });
+    return entry;
+  };
 
+  if (appState.viewMode === "jobs") {
+    const jobs = matchingTechnicians.flatMap(({ techName, projects }) =>
+      projects.map(([projectName, project]) => ({ techName, projectName, project }))
+    );
+    jobs.sort((a, b) => String(a.projectName).localeCompare(String(b.projectName)));
+    jobs.forEach(({ techName, projectName, project }) => {
+      technicianContainer.appendChild(createProjectEntry(techName, projectName, project));
+    });
+  } else technicianEntries.forEach(({ techName, projects }) => {
     const techCard = document.createElement("div");
     techCard.className = "tech-section";
 
-    const techHeader = document.createElement("div");
+    const techHeader = document.createElement("button");
+    techHeader.type = "button";
     techHeader.className = "tech-header";
-    techHeader.textContent = techName;
+    techHeader.innerHTML = `<span>${techName}</span><small>${projects.length} job${projects.length === 1 ? '' : 's'}</small>`;
     techCard.appendChild(techHeader);
 
     const projectList = document.createElement("div");
     projectList.className = "project-list";
     projectList.style.display = "none";
 
-    projects.forEach(([projectName, project]) => {
-      const completion = projectProgress(project);
-      const entry = document.createElement("div");
-      entry.className = "project-entry";
-      entry.innerHTML = `
-        <strong>${projectName}</strong><br/>
-        ${completion}% Complete · ${project.status || 'scheduled'}
-        <div class="progress-bar"><div class="progress-fill" style="width:${completion}%"></div></div>
-        <small>${project.scheduledStart ? `Scheduled: ${new Date(project.scheduledStart).toLocaleString()}` : 'Scheduled: n/a'}</small><br/>
-        <small>Updated: ${project.lastUpdated ? new Date(project.lastUpdated).toLocaleString() : "n/a"}</small>
-      `;
-
-      entry.addEventListener("click", () => {
-        const url = `project.html?tech=${encodeURIComponent(techName)}&project=${encodeURIComponent(projectName)}`;
-        window.location.href = url;
-      });
-
-      projectList.appendChild(entry);
-    });
+    projects.forEach(([projectName, project]) => projectList.appendChild(createProjectEntry(techName, projectName, project)));
 
     techHeader.addEventListener("click", () => {
       const expanded = projectList.style.display === "none";
@@ -889,6 +925,8 @@ async function startApp() {
   if (user.role === 'technician' && user.technicianName) {
     appState.techFilter = user.technicianName;
     appState.currentTech = user.technicianName;
+  } else if (isProjectManagerRole(user.role)) {
+    appState.techFilter = "all";
   }
   headerControls();
   loadData();

@@ -40,6 +40,8 @@ main {
   padding-top: calc(env(safe-area-inset-top) + 7.9rem);
   padding-left: 1rem;
   padding-right: 1rem;
+  max-width: 1100px;
+  margin: 0 auto;
 }
 
 .top-controls {
@@ -57,14 +59,65 @@ main {
 }
 
 .top-controls input, .top-controls select {
-  margin-left: 0.25rem;
-  padding: 0.25rem;
+  padding: 0.5rem;
+  min-height: 2.5rem;
+  max-width: 100%;
+}
+
+.top-controls label {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.top-controls button,
+.role-bar button {
+  min-height: 2.5rem;
+  padding: 0.45rem 0.8rem;
+}
+
+.account-summary {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 100%;
+}
+
+.role-label {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.2rem 0.5rem;
+  border-radius: 999px;
+  color: #0b4f6c;
+  background: #dff5ff;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.view-switch {
+  display: inline-flex;
+  gap: 0.25rem;
+  padding: 0.2rem;
+  border-radius: 9px;
+  background: #343434;
+}
+
+.view-switch button {
+  border: 0;
+  border-radius: 7px;
+}
+
+.view-switch button.active {
+  background: #00bfff;
+  color: #07131a;
+  font-weight: 700;
 }
 
 .role-bar {
   display: flex;
   gap: 0.5rem;
   align-items: center;
+  flex-wrap: wrap;
   margin-bottom: 0.75rem;
 }
 
@@ -106,17 +159,53 @@ header h1.title {
 }
 
 .tech-header {
+  width: 100%;
+  border: 0;
+  background: transparent;
   font-weight: bold;
   font-size: 1.2rem;
-  text-align: center;
+  text-align: left;
   cursor: pointer;
-  padding: 0.5rem 0;
+  padding: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.tech-header small {
+  color: #555;
+  font-size: 0.8rem;
 }
 
 .project-entry {
-  padding: 0.5rem 1rem;
-  border-top: 1px solid #ccc;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin-bottom: 0.75rem;
+  padding: 0.9rem 1rem;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  background: #fff;
+  color: #111;
+  text-align: left;
   cursor: pointer;
+}
+
+.project-entry:hover,
+.project-entry:focus-visible {
+  border-color: #00bfff;
+  box-shadow: 0 0 0 2px rgba(0,191,255,.18);
+}
+
+.project-name {
+  font-weight: 700;
+  font-size: 1.05rem;
+}
+
+.project-tech {
+  color: #0b6690;
+  font-weight: 700;
 }
 
 .project-list {
@@ -132,11 +221,53 @@ header h1.title {
 }
 
 .progress-bar {
+  display: block;
+  width: 100%;
   height: 8px;
   background-color: #ddd;
   border-radius: 4px;
   margin-top: 4px;
   overflow: hidden;
+}
+
+.auth-card {
+  width: min(420px, 100%);
+  background: white;
+  border-radius: 14px;
+  padding: 1.5rem;
+  box-shadow: 0 20px 60px #0008;
+}
+
+.auth-card label {
+  display: block;
+  margin-top: 1rem;
+  font-weight: 700;
+}
+
+.auth-card input {
+  width: 100%;
+  min-height: 2.75rem;
+  padding: 0.7rem;
+  border: 1px solid #777;
+  border-radius: 6px;
+  font-size: 1rem;
+}
+
+.password-field {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  margin-top: 0.3rem;
+}
+
+.password-field input {
+  border-radius: 6px 0 0 6px;
+}
+
+.password-toggle {
+  min-width: 4.25rem;
+  border: 1px solid #777;
+  border-left: 0;
+  border-radius: 0 6px 6px 0;
 }
 
 .progress-fill {
@@ -202,9 +333,60 @@ header h1.title {
 
   .top-controls {
     margin-top: 0.75rem;
+    align-items: stretch;
+  }
+
+  .top-controls label,
+  .top-controls input,
+  .top-controls select,
+  .top-controls > button,
+  .view-switch {
+    width: 100%;
+  }
+
+  .top-controls label {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .view-switch button {
+    flex: 1;
   }
 
   .tech-section {
+    margin-top: 0.5rem;
+  }
+
+  #project-container {
+    margin: 0.75rem auto;
+    padding: 1rem;
+  }
+
+  .role-bar {
+    align-items: stretch;
+  }
+
+  .role-bar strong,
+  .role-bar .role-label {
+    width: 100%;
+  }
+}
+
+@media (orientation: landscape) and (max-height: 520px) {
+  header {
+    position: static;
+    padding-top: calc(env(safe-area-inset-top) + 0.25rem);
+  }
+
+  main {
+    padding-top: 1rem;
+  }
+
+  .logo {
+    height: 38px;
+  }
+
+  #project-container {
     margin-top: 0.5rem;
   }
 }

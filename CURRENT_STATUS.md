@@ -114,3 +114,13 @@ Update this file and the live folder PROJECT_STATUS.md before and after implemen
 2. Add accessible show/hide controls and matching-password confirmation to invitation/reset forms.
 3. Reflow dashboard and project toolbars for narrow and landscape viewports without horizontal overflow.
 4. Run syntax/build checks plus mobile and desktop visual regression checks before deployment.
+
+## Responsive UI correction completed 2026-10-04
+- Project Managers and System Administrators now land on a flat, clickable Jobs view showing all technicians' matching jobs.
+- A Jobs/Technicians switch changes to a clickable technician list; selecting a technician expands that technician's jobs and each job opens the existing project detail screen.
+- Technician accounts retain their technician-scoped view.
+- Account names are normalized for display and raw role identifiers are replaced by friendly labels.
+- Invitation and reset forms require matching passwords; sign-in, invitation, and reset forms provide accessible Show/Hide controls.
+- Dashboard and project controls now wrap at narrow widths; portrait mobile controls use full-width inputs/buttons and short landscape layouts no longer reserve fixed-header space.
+- Cache-busting query versions were advanced for the changed CSS and JavaScript assets.
+- Verification completed: `node --check` passed for all changed JavaScript, `git diff --check` passed, and an isolated DOM test passed PM Jobs default, technician switching, friendly labels, password visibility, and mismatch rejection. Full Playwright rendering was unavailable on the Gateway because its Chromium runtime lacks system libraries; no production data was used by the isolated test.

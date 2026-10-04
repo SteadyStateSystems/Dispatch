@@ -15,6 +15,23 @@
     return localStorage.getItem(TOKEN_KEY) || '';
   }
 
+  function cleanDisplayName(value) {
+    return String(value || '').trim().replace(/^["']+|["']+$/g, '').trim();
+  }
+
+  function displayName(user) {
+    return cleanDisplayName(user?.displayName) || user?.email || 'M3T User';
+  }
+
+  function roleLabel(role) {
+    return ({
+      technician: 'Technician',
+      project_manager: 'Project Manager',
+      system_admin: 'System Administrator',
+      admin: 'System Administrator'
+    })[role] || 'User';
+  }
+
   function installFetch(base) {
     apiBase = String(base || '').replace(/\/$/, '');
     if (installed) return;
@@ -42,22 +59,36 @@
       overlay.id = 'm3tAuthOverlay';
       overlay.style.cssText = 'position:fixed;inset:0;z-index:20000;background:#111827;display:grid;place-items:center;padding:1rem';
       const isLogin = mode === 'login';
+      const needsConfirmation = !isLogin;
       overlay.innerHTML = `
-        <form id="m3tAuthForm" style="width:min(420px,100%);background:white;border-radius:14px;padding:1.5rem;box-shadow:0 20px 60px #0008">
+        <form id="m3tAuthForm" class="auth-card">
           <h2 style="margin-top:0">M3T ${isLogin ? 'Sign In' : (mode === 'invite' ? 'Create Account' : 'Reset Password')}</h2>
-          ${isLogin ? '<label>Email<br><input id="m3tAuthEmail" type="email" autocomplete="username" required style="width:100%;box-sizing:border-box;padding:.7rem"></label><br><br>' : ''}
-          <label>Password<br><input id="m3tAuthPassword" type="password" autocomplete="${isLogin ? 'current-password' : 'new-password'}" minlength="12" required style="width:100%;box-sizing:border-box;padding:.7rem"></label>
+          ${isLogin ? '<label>Email<input id="m3tAuthEmail" type="email" autocomplete="username" required></label>' : ''}
+          <label>Password<span class="password-field"><input id="m3tAuthPassword" type="password" autocomplete="${isLogin ? 'current-password' : 'new-password'}" minlength="${isLogin ? '1' : '12'}" required><button type="button" class="password-toggle" data-target="m3tAuthPassword" aria-label="Show password">Show</button></span></label>
+          ${needsConfirmation ? '<label>Confirm Password<span class="password-field"><input id="m3tAuthPasswordConfirm" type="password" autocomplete="new-password" minlength="12" required><button type="button" class="password-toggle" data-target="m3tAuthPasswordConfirm" aria-label="Show confirmed password">Show</button></span></label>' : ''}
           ${isLogin ? '' : '<small>Use at least 12 characters.</small>'}
           <p id="m3tAuthError" style="min-height:1.25rem;color:#b91c1c"></p>
           <button type="submit" style="width:100%;padding:.8rem">${isLogin ? 'Sign In' : 'Save Password'}</button>
         </form>`;
       document.body.appendChild(overlay);
       const form = overlay.querySelector('#m3tAuthForm');
+      overlay.querySelectorAll('.password-toggle').forEach(button => {
+        button.addEventListener('click', () => {
+          const input = overlay.querySelector(`#${button.dataset.target}`);
+          const showing = input.type === 'text';
+          input.type = showing ? 'password' : 'text';
+          button.textContent = showing ? 'Show' : 'Hide';
+          button.setAttribute('aria-label', `${showing ? 'Show' : 'Hide'} password`);
+        });
+      });
       form.addEventListener('submit', async event => {
         event.preventDefault();
         const error = overlay.querySelector('#m3tAuthError');
         error.textContent = '';
         try {
+          if (needsConfirmation && overlay.querySelector('#m3tAuthPassword').value !== overlay.querySelector('#m3tAuthPasswordConfirm').value) {
+            throw new Error('Passwords do not match');
+          }
           if (isLogin) {
             const payload = await api('/auth/login', {
               method: 'POST',
@@ -117,6 +148,8 @@
     bootstrap,
     installFetch,
     logout,
-    currentUser: () => currentUser
+    currentUser: () => currentUser,
+    displayName,
+    roleLabel
   };
 })();
