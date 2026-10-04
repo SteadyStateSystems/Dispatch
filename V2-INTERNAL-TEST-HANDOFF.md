@@ -31,3 +31,10 @@
 ## Notes
 - V1 remains on `main`
 - V2 is active development branch only
+
+
+---
+
+## Verified catch-up note - 2026-10-03
+
+This handoff's original branch language is historical. The v2 branch is now an ancestor of main; the current root frontend on main is the active integrated line. The live API was stopped during catch-up, and current endpoints require authentication. See CURRENT_STATUS.md for the verified baseline, test-safety warnings, and rollback snapshot.
