@@ -66,3 +66,29 @@ Update this file and the live folder PROJECT_STATUS.md before and after implemen
 4. Replace client-side role switching with authenticated session state.
 5. Add isolated temporary-database tests and prove that live JSON hashes do not change.
 6. Generate runtime secrets in an ACL-restricted local configuration, repair startup, then verify local and tunnel paths.
+
+## Authentication implementation checkpoint 2026-10-04
+- Frontend authentication and account administration were committed and pushed as ca845cc.
+- Live API now uses a separate SQLite authentication database at C:\Users\asshole\AppData\Local\M3T\auth.sqlite.
+- Passwords use Argon2id hashes. Sessions, invitations, and password-reset tokens are random, stored only as SHA-256 token hashes, expire, and can be revoked.
+- Account creation is invitation-only. Email is the unique login identity. Public self-registration is not implemented.
+- Implemented roles:
+  - technician: assigned technician data/work only; finance fields removed and cross-technician writes rejected.
+  - project_manager: project, dispatch, and finance access; no user/security administration.
+  - system_admin: full access plus invitations, resets, account status, technician lifecycle, and settings.
+- Finance read routes now require project_manager/system_admin. User administration requires system_admin.
+- Browser role switching and trusted role headers were removed from the active root frontend.
+- Legacy plaintext data.json users are ignored by the new authentication store and their passwords were not migrated.
+- Legacy hardcoded-token tests were removed from the live folder after the verified snapshot. Replacement tests use temporary JSON and SQLite files.
+- Windows staging and live isolated suites each passed 7/7 tests. npm audit reported zero vulnerabilities.
+- Live data.json, log.json, and undo-queue.json hashes remained identical to the pre-authentication baseline.
+- The live launcher and Startup launcher match and use the ACL-restricted auth database plus explicit CORS origins.
+- A local runtime probe returned 200 for /health and 401 for unauthenticated /data.
+- The obsolete loaded Node process and its ngrok process were stopped. Port 3000 and ngrok are intentionally stopped pending first-administrator bootstrap.
+- Authentication database currently contains zero users. Activation requires the owner's email address and display name to generate the one-time system-administrator invitation.
+
+### Rollback
+1. Stop the exact M3T Node/ngrok processes.
+2. Restore live and repository files from C:\Users\asshole\Desktop\M3T-PreAuth-20261004-164758 and verify SHA256SUMS.json.
+3. Restore Git from Project-Management.bundle only with explicit approval.
+4. The new auth database is separate at C:\Users\asshole\AppData\Local\M3T; preserve it unless the account system itself is intentionally rolled back.
