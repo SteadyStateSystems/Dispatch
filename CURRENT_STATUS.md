@@ -163,3 +163,15 @@ Update this file and the live folder PROJECT_STATUS.md before and after implemen
 - Verified rollback snapshot: C:\Users\asshole\Desktop\M3T-PreSummaryCollapse-20261004-210813 (96 files, valid Git bundle, SHA-256 manifest verified).
 - Bounded work: add an accessible collapsed-by-default disclosure to the existing PM summary card, preserve its list presentation when expanded, advance cache versions, and run syntax, DOM/CSS, diff, deployment, health, and production-data integrity checks.
 
+
+
+## PM summary collapse refinement completed 2026-10-04
+- PM/System Administrator dashboards now render the PM Summary as a native disclosure collapsed by default.
+- Clicking or keyboard-activating the full PM Summary header expands or collapses the existing white-card metric list; plus/minus indicators expose the state visually.
+- The implementation uses semantic details/summary elements and a visible keyboard-focus style.
+- Cache versions advanced to 20261004-4 for styles.css and main.js.
+- Verification passed: node --check, git diff --check, 8/8 local collapse assertions, successful GitHub Pages deployment, and 6/6 live asset assertions.
+- Local and static-ngrok health checks return 200; production data.json, log.json, and undo-queue.json SHA-256 values remain unchanged.
+- Frontend implementation commit: ebd2f56.
+- Rollback: restore index.html, main.js, and styles.css from C:\Users\asshole\Desktop\M3T-PreSummaryCollapse-20261004-210813, or restore Git from its verified bundle only with explicit approval.
+
