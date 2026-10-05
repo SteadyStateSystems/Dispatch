@@ -121,6 +121,64 @@ main {
   margin-bottom: 0.75rem;
 }
 
+.pm-summary-card {
+  color: #111;
+  background: #fff;
+  border: 2px solid #333;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  padding: 1rem;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.18);
+}
+
+.pm-summary-card h2 {
+  margin-bottom: 0.35rem;
+  font-size: 1.25rem;
+}
+
+.pm-summary-list {
+  margin: 0;
+}
+
+.pm-summary-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 1rem;
+  align-items: start;
+  padding: 0.65rem 0;
+  border-bottom: 1px solid #ddd;
+}
+
+.pm-summary-row:last-child {
+  border-bottom: 0;
+}
+
+.pm-summary-row dt {
+  font-weight: 700;
+}
+
+.pm-summary-row dd {
+  margin: 0;
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+
+.pm-summary-hours {
+  min-width: 10rem;
+  list-style: none;
+}
+
+.pm-summary-hours li {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.pm-summary-error {
+  color: #b00020;
+}
+
+
 
 
 
@@ -352,6 +410,20 @@ header h1.title {
   .view-switch button {
     flex: 1;
   }
+
+  .pm-summary-row {
+    grid-template-columns: 1fr;
+    gap: 0.25rem;
+  }
+
+  .pm-summary-row dd {
+    text-align: left;
+  }
+
+  .pm-summary-hours {
+    min-width: 0;
+  }
+
 
   .tech-section {
     margin-top: 0.5rem;

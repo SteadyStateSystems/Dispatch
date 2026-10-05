@@ -138,3 +138,13 @@ Update this file and the live folder PROJECT_STATUS.md before and after implemen
 - Active branch is main at 14da41e, matching origin/main; only generated .next/ and node_modules/ folders are untracked.
 - Verified rollback snapshot: C:\Users\asshole\Desktop\M3T-PreSummary-20261004-201752 (96 files, valid Git bundle, SHA-256 manifest verified).
 - Bounded work: change only the PM summary presentation and related responsive styling/cache versions, then run syntax, isolated DOM, diff, deployment, health, and live-data integrity checks.
+
+## PM summary readability refinement completed 2026-10-04
+- PM/System Administrator dashboards now show PM Summary inside a white job-style card with one labeled metric per row.
+- Technician hours render as a nested name/value list instead of compressed inline text.
+- The card stacks labels and values on narrow screens while retaining two-column rows on wider screens.
+- Cache versions advanced to 20261004-3 for styles.css and main.js.
+- Verification passed: node --check, git diff --check, and an isolated DOM/CSS test covering all 10 summary rows and technician-hour entries.
+- Browser-rendered screenshots remain unverified because the Gateway Chromium lacks libnspr4 and the Windows browser listener owner could not be authenticated.
+- Local and static-ngrok health checks return 200; production JSON hashes remain unchanged.
+- Rollback snapshot: C:\Users\asshole\Desktop\M3T-PreSummary-20261004-201752.

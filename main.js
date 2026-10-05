@@ -78,10 +78,10 @@ function headerControls() {
   const controlsHost = document.getElementById('dashboardControls');
   if (controlsHost) {
     controlsHost.replaceChildren(wrap);
-    const summary = document.createElement('div');
+    const summary = document.createElement('section');
     summary.id = 'pmSummary';
-    summary.style.color = '#fff';
-    summary.style.marginBottom = '0.75rem';
+    summary.className = 'pm-summary-card';
+    summary.hidden = true;
     controlsHost.appendChild(summary);
   }
 
@@ -807,23 +807,87 @@ async function loadPMSummary() {
   const box = document.getElementById('pmSummary');
   if (!box) return;
   if (!isProjectManagerRole(appState.role)) {
-    box.textContent = '';
+    box.hidden = true;
+    box.replaceChildren();
     return;
   }
+
+  const addMetric = (list, label, value) => {
+    const row = document.createElement('div');
+    row.className = 'pm-summary-row';
+    const term = document.createElement('dt');
+    term.textContent = label;
+    const detail = document.createElement('dd');
+    detail.textContent = value;
+    row.append(term, detail);
+    list.appendChild(row);
+  };
+
+  box.hidden = false;
+  box.replaceChildren();
+
   try {
     const [pmRes, finRes] = await Promise.all([
-      fetch(`${API_BASE}/pm-summary`, { headers: { "ngrok-skip-browser-warning": "true" } }),
-      fetch(`${API_BASE}/finance-summary`, { headers: { "ngrok-skip-browser-warning": "true" } })
+      fetch(API_BASE + '/pm-summary', { headers: { 'ngrok-skip-browser-warning': 'true' } }),
+      fetch(API_BASE + '/finance-summary', { headers: { 'ngrok-skip-browser-warning': 'true' } })
     ]);
     const p = await pmRes.json();
     const f = await finRes.json();
     if (!pmRes.ok) throw new Error('summary failed');
-    const hours = p.hoursByTech || {};
-    const hourText = Object.entries(hours).slice(0, 3).map(([k,v]) => `${k}:${v}h`).join(' · ');
-    const finText = finRes.ok ? ` · Margin: $${(f.estimatedMargin || 0).toFixed(2)} · Invoices P/I/N: ${f.invoiceCounts?.paid || 0}/${f.invoiceCounts?.invoiced || 0}/${f.invoiceCounts?.notInvoiced || 0} · Overdue Inv: ${f.invoiceCounts?.overdueInvoiced || 0} · Paid 30d: ${f.invoiceCounts?.paidLast30d || 0} · Collected 30d: $${(f.collectedLast30d || 0).toFixed(2)} · Collection Rate: ${(f.collectionRate || 0).toFixed(1)}%` : '';
-    box.textContent = `PM Summary — Total: ${p.totalProjects || 0} · Overdue: ${p.overdue || 0} · At Risk (48h): ${p.atRisk || 0}${hourText ? ` · Hours: ${hourText}` : ''}${finText}`;
+
+    const title = document.createElement('h2');
+    title.textContent = 'PM Summary';
+    const list = document.createElement('dl');
+    list.className = 'pm-summary-list';
+
+    addMetric(list, 'Total Jobs', String(p.totalProjects || 0));
+    addMetric(list, 'Overdue Jobs', String(p.overdue || 0));
+    addMetric(list, 'At Risk (48 hours)', String(p.atRisk || 0));
+
+    const hoursRow = document.createElement('div');
+    hoursRow.className = 'pm-summary-row pm-summary-hours-row';
+    const hoursTerm = document.createElement('dt');
+    hoursTerm.textContent = 'Technician Hours';
+    const hoursDetail = document.createElement('dd');
+    const hoursList = document.createElement('ul');
+    hoursList.className = 'pm-summary-hours';
+    const hourEntries = Object.entries(p.hoursByTech || {});
+    if (hourEntries.length) {
+      hourEntries.forEach(([name, hours]) => {
+        const item = document.createElement('li');
+        const techName = document.createElement('span');
+        techName.textContent = name;
+        const techHours = document.createElement('strong');
+        techHours.textContent = String(hours) + 'h';
+        item.append(techName, techHours);
+        hoursList.appendChild(item);
+      });
+    } else {
+      const item = document.createElement('li');
+      item.textContent = 'No hours logged';
+      hoursList.appendChild(item);
+    }
+    hoursDetail.appendChild(hoursList);
+    hoursRow.append(hoursTerm, hoursDetail);
+    list.appendChild(hoursRow);
+
+    if (finRes.ok) {
+      addMetric(list, 'Estimated Margin', '$' + (f.estimatedMargin || 0).toFixed(2));
+      addMetric(list, 'Invoices (Paid / Invoiced / Not Invoiced)', String(f.invoiceCounts?.paid || 0) + ' / ' + String(f.invoiceCounts?.invoiced || 0) + ' / ' + String(f.invoiceCounts?.notInvoiced || 0));
+      addMetric(list, 'Overdue Invoices', String(f.invoiceCounts?.overdueInvoiced || 0));
+      addMetric(list, 'Paid (Last 30 Days)', String(f.invoiceCounts?.paidLast30d || 0));
+      addMetric(list, 'Collected (Last 30 Days)', '$' + (f.collectedLast30d || 0).toFixed(2));
+      addMetric(list, 'Collection Rate', (f.collectionRate || 0).toFixed(1) + '%');
+    }
+
+    box.append(title, list);
   } catch {
-    box.textContent = 'PM Summary unavailable';
+    const title = document.createElement('h2');
+    title.textContent = 'PM Summary';
+    const message = document.createElement('p');
+    message.className = 'pm-summary-error';
+    message.textContent = 'Summary unavailable';
+    box.append(title, message);
   }
 }
 
