@@ -155,3 +155,11 @@ Update this file and the live folder PROJECT_STATUS.md before and after implemen
 - Local and static-ngrok health checks return 200.
 - Production data.json, log.json, and undo-queue.json SHA-256 values match the pre-change baseline.
 - Windows repository matches origin/main; only known generated .next/ and node_modules/ folders remain untracked.
+
+
+## PM summary collapse refinement started 2026-10-04
+- Owner requested the PM Summary card be collapsed by default and expand when clicked.
+- Active branch is main at 746a03f, matching origin/main; only generated .next/ and node_modules/ folders are untracked.
+- Verified rollback snapshot: C:\Users\asshole\Desktop\M3T-PreSummaryCollapse-20261004-210813 (96 files, valid Git bundle, SHA-256 manifest verified).
+- Bounded work: add an accessible collapsed-by-default disclosure to the existing PM summary card, preserve its list presentation when expanded, advance cache versions, and run syntax, DOM/CSS, diff, deployment, health, and production-data integrity checks.
+
