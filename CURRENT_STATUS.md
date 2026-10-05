@@ -148,3 +148,10 @@ Update this file and the live folder PROJECT_STATUS.md before and after implemen
 - Browser-rendered screenshots remain unverified because the Gateway Chromium lacks libnspr4 and the Windows browser listener owner could not be authenticated.
 - Local and static-ngrok health checks return 200; production JSON hashes remain unchanged.
 - Rollback snapshot: C:\Users\asshole\Desktop\M3T-PreSummary-20261004-201752.
+
+### PM summary deployment verification
+- Frontend implementation commit: 6c5f54a.
+- GitHub Pages deployment for 6c5f54a completed successfully and serves cache version 20261004-3, the pm-summary-card markup, and the responsive card styles.
+- Local and static-ngrok health checks return 200.
+- Production data.json, log.json, and undo-queue.json SHA-256 values match the pre-change baseline.
+- Windows repository matches origin/main; only known generated .next/ and node_modules/ folders remain untracked.
