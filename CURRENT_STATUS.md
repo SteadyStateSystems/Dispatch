@@ -132,3 +132,9 @@ Update this file and the live folder PROJECT_STATUS.md before and after implemen
 - Local and static-ngrok health checks return 200.
 - Production data.json, log.json, and undo-queue.json SHA-256 values match the verified pre-UI snapshot.
 - Windows repository matches origin/main; only known generated .next/ and node_modules/ folders are untracked.
+
+## PM summary readability refinement started 2026-10-04
+- Owner requested the PM summary be converted from a dense inline sentence into a readable list inside a white job-style card.
+- Active branch is main at 14da41e, matching origin/main; only generated .next/ and node_modules/ folders are untracked.
+- Verified rollback snapshot: C:\Users\asshole\Desktop\M3T-PreSummary-20261004-201752 (96 files, valid Git bundle, SHA-256 manifest verified).
+- Bounded work: change only the PM summary presentation and related responsive styling/cache versions, then run syntax, isolated DOM, diff, deployment, health, and live-data integrity checks.
