@@ -835,8 +835,11 @@ async function loadPMSummary() {
     const f = await finRes.json();
     if (!pmRes.ok) throw new Error('summary failed');
 
-    const title = document.createElement('h2');
+    const disclosure = document.createElement('details');
+    disclosure.className = 'pm-summary-disclosure';
+    const title = document.createElement('summary');
     title.textContent = 'PM Summary';
+    title.setAttribute('aria-label', 'Toggle PM Summary');
     const list = document.createElement('dl');
     list.className = 'pm-summary-list';
 
@@ -880,14 +883,19 @@ async function loadPMSummary() {
       addMetric(list, 'Collection Rate', (f.collectionRate || 0).toFixed(1) + '%');
     }
 
-    box.append(title, list);
+    disclosure.append(title, list);
+    box.appendChild(disclosure);
   } catch {
-    const title = document.createElement('h2');
+    const disclosure = document.createElement('details');
+    disclosure.className = 'pm-summary-disclosure';
+    const title = document.createElement('summary');
     title.textContent = 'PM Summary';
+    title.setAttribute('aria-label', 'Toggle PM Summary');
     const message = document.createElement('p');
     message.className = 'pm-summary-error';
     message.textContent = 'Summary unavailable';
-    box.append(title, message);
+    disclosure.append(title, message);
+    box.appendChild(disclosure);
   }
 }
 
